@@ -15,10 +15,12 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("dashboard.index"))
+    
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         user = User.query.filter_by(email=email).first()
+        
         if user and user.is_active and user.check_password(password):
             login_user(user, remember=True)
             user.last_login = datetime.utcnow()
@@ -26,6 +28,7 @@ def login():
             flash(f"Welcome back, {user.name}! 👋", "success")
             nxt = request.args.get("next")
             return redirect(nxt or url_for("dashboard.index"))
+            
         flash("Invalid email or password.", "danger")
     return render_template("auth/login.html")
 
@@ -39,17 +42,29 @@ def logout():
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])
-@login_required
 def register():
-    if not current_user.is_admin:
-        flash("Only admins can create new users.", "danger")
-        return redirect(url_for("dashboard.index"))
+    """
+    Registration Logic:
+    1. If DB is empty, allow first user to register as Admin.
+    2. If DB has users, require current_user to be Admin.
+    """
+    user_count = User.query.count()
+
+    # If users exist, enforce security
+    if user_count > 0:
+        if not current_user.is_authenticated or not current_user.is_admin:
+            flash("Only admins can create new users.", "danger")
+            return redirect(url_for("dashboard.index"))
+
     if request.method == "POST":
         name  = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip().lower()
-        role  = request.form.get("role", "coordinator")
         pwd   = request.form.get("password", "")
         phone = request.form.get("phone", "").strip()
+        
+        # If first user ever, force 'admin' role, otherwise get from form
+        role = "admin" if user_count == 0 else request.form.get("role", "coordinator")
+
         if User.query.filter_by(email=email).first():
             flash("Email already in use.", "warning")
         else:
@@ -57,9 +72,15 @@ def register():
             u.set_password(pwd)
             db.session.add(u)
             db.session.commit()
+            
+            if user_count == 0:
+                flash("Admin account created! You can now log in.", "success")
+                return redirect(url_for("auth.login"))
+            
             flash(f"User {name} created successfully.", "success")
             return redirect(url_for("auth.users_list"))
-    return render_template("auth/register.html")
+            
+    return render_template("auth/register.html", is_first_user=(user_count == 0))
 
 
 @auth_bp.route("/users")
