@@ -22,10 +22,10 @@ with app.app_context():
 
     # ── Admin user ────────────────────────────────────────────
     if not User.query.filter_by(email="admin@metroevents.ph").first():
-        admin = User(name="JD Admin", email="admin@metroevents.ph", role="admin")
-        admin.set_password("metro2024")
+        admin = User(name="Admin", email="admin@metroevents.ph", role="admin")
+        admin.set_password("admin1234")
         db.session.add(admin)
-        print("✅ Admin created: admin@metroevents.ph / metro2024")
+        print("✅ Admin created: admin@metroevents.ph / admin1234")
 
     # ── Sample coordinator ────────────────────────────────────
     if not User.query.filter_by(email="coordinator@metroevents.ph").first():
