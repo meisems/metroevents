@@ -1,13 +1,12 @@
 """
 Metro Events — Application Factory
-Creates and configures the Flask app. Run with: python run.py
+Creates and configures the Flask app. 
 """
 
 import os
 from flask import Flask
 from config import config
 from database import db, login_manager, migrate, csrf
-
 
 def create_app(config_name: str = "default") -> Flask:
     app = Flask(__name__)
@@ -32,7 +31,6 @@ def create_app(config_name: str = "default") -> Flask:
     from routes.tasks import tasks_bp
     from routes.checklist import checklist_bp
     from routes.event_log import event_log_bp
-    # ── NEW: Phase 2 blueprints ───────────────────────────────
     from routes.suppliers import suppliers_bp
     from routes.reports import reports_bp
     from routes.after_event import after_event_bp
@@ -74,7 +72,6 @@ def create_app(config_name: str = "default") -> Flask:
 
     @app.template_filter("stars")
     def stars_filter(value):
-        """Render star rating as unicode stars."""
         try:
             r = int(value or 0)
             return "★" * r + "☆" * (5 - r)
@@ -115,4 +112,15 @@ def create_app(config_name: str = "default") -> Flask:
         from flask import render_template
         return render_template("errors/403.html"), 403
 
+    # ── Database Creation for Cloud ──────────────────────────
+    with app.app_context():
+        db.create_all()
+
     return app
+
+# ── EXPOSE APP FOR GUNICORN ──────────────────────────────────
+# This is what Gunicorn looks for when we run 'gunicorn app:app'
+app = create_app(os.getenv('FLASK_CONFIG') or 'default')
+
+if __name__ == "__main__":
+    app.run()
