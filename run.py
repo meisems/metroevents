@@ -17,16 +17,16 @@ def seed_admin():
     from models.user import User
     if not User.query.filter_by(role="admin").first():
         admin = User(
-            name="JD (Admin)",
+            name="Admin",
             email="admin@metroevents.ph",
             role="admin",
             phone="+63 9XX XXX XXXX",
             is_active=True,
         )
-        admin.set_password("metro2024!")
+        admin.set_password("admin1234")
         db.session.add(admin)
         db.session.commit()
-        print("✅  Admin user created: admin@metroevents.ph / metro2024!")
+        print("✅  Admin user created: admin@metroevents.ph / admin1234")
     else:
         print("ℹ️   Admin user already exists.")
 
