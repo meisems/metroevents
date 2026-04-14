@@ -6,13 +6,11 @@
      display:flex;align-items:center;justify-content:center;padding:20px;">
   <div style="width:100%;max-width:400px;">
 
-    <!-- Logo -->
     <div class="text-center mb-4">
       <div style="font-size:2.2rem;font-weight:900;color:#fff;letter-spacing:1px;">⚡ Metro Events</div>
       <div style="color:#C9A84C;font-style:italic;font-size:.9rem;margin-top:4px;">Creating memories.</div>
     </div>
 
-    <!-- Card -->
     <div style="background:#fff;border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
       <h5 style="font-weight:800;color:#1A1A2E;margin-bottom:22px;text-align:center;">Welcome back 👋</h5>
 
@@ -39,6 +37,13 @@
           Log In to Metro Events
         </button>
       </form>
+
+      <div class="text-center mt-4 pt-3" style="border-top: 1px solid #eee;">
+          <p style="margin-bottom: 5px; color: #666; font-size: 0.85rem;">New to the system?</p>
+          <a href="{{ url_for('auth.register') }}" style="color: #C9A84C; text-decoration: none; font-weight: 700; font-size: 0.9rem;">
+              ✨ Create Admin Account
+          </a>
+      </div>
     </div>
 
     <div class="text-center mt-3" style="color:rgba(255,255,255,.4);font-size:.78rem;">
