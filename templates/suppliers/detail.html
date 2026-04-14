@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}{{ supplier.company_name }} — Metro Events{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+  <div>
+    <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
+    <h2 class="d-inline ms-2">
+      {{ supplier.company_name }}
+      {% if supplier.is_preferred %}<span class="badge bg-warning text-dark">⭐ Preferred</span>{% endif %}
+    </h2>
+    <p class="text-muted mb-0">{{ supplier.category }} · {{ supplier.contact_person or '' }}</p>
+  </div>
+  <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) }}"
+     class="btn btn-outline-primary">✏️ Edit</a>
+</div>
+
+<div class="row g-3">
+  <!-- Info card -->
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <p><strong>📱 Phone:</strong> {{ supplier.phone or '—' }}</p>
+        <p><strong>📧 Email:</strong> {{ supplier.email or '—' }}</p>
+        <p><strong>📍 Address:</strong> {{ supplier.address or '—' }}</p>
+        <p><strong>⭐ Rating:</strong> {{ '★' * (supplier.rating|int) }}
+           <small class="text-muted">({{ supplier.rating }})</small></p>
+        <hr>
+        <p class="mb-1"><strong>Performance</strong></p>
+        <div class="d-flex gap-3">
+          <div class="text-center">
+            <div class="h5 text-success">{{ supplier.on_time_count }}</div>
+            <small>On-time</small>
+          </div>
+          <div class="text-center">
+            <div class="h5 text-danger">{{ supplier.late_count }}</div>
+            <small>Late</small>
+          </div>
+          <div class="text-center">
+            <div class="h5 text-warning">{{ supplier.issue_count }}</div>
+            <small>Issues</small>
+          </div>
+        </div>
+        <div class="progress mt-2" style="height:8px" title="{{ supplier.reliability_pct }}% on-time">
+          <div class="progress-bar bg-success" style="width:{{ supplier.reliability_pct }}%"></div>
+        </div>
+        <small class="text-muted">{{ supplier.reliability_pct }}% reliability</small>
+        {% if supplier.notes %}
+        <hr><p class="small text-muted">{{ supplier.notes }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- PO list + add form -->
+  <div class="col-md-8">
+    <div class="card shadow-sm mb-3">
+      <div class="card-header fw-bold">📋 Purchase Orders</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>PO#</th><th>Event</th><th>Amount</th>
+              <th>Status</th><th>Delivery</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for po in pos %}
+            <tr>
+              <td>{{ po.po_number or '—' }}</td>
+              <td><small>{{ po.event.name if po.event else '—' }}</small></td>
+              <td>{{ po.amount | peso }}</td>
+              <td>
+                <span class="badge bg-{% if po.status == 'delivered' %}success{% elif po.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                  {{ po.status }}
+                </span>
+              </td>
+              <td><small>{{ po.delivery_date | dateformat if po.delivery_date else '—' }}</small></td>
+              <td>
+                {% if po.status not in ['delivered','cancelled'] %}
+                <form method="POST" action="{{ url_for('suppliers.mark_delivered', po_id=po.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="on_time" value="1">
+                  <button class="btn btn-success btn-sm py-0">✓ On-time</button>
+                </form>
+                <form method="POST" action="{{ url_for('suppliers.mark_delivered', po_id=po.id) }}" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="on_time" value="0">
+                  <button class="btn btn-warning btn-sm py-0">⚠ Late</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-muted text-center py-3">No POs yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Add PO -->
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">➕ Add Purchase Order</div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('suppliers.add_po', supplier_id=supplier.id) }}"
+              enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <input type="text" name="po_number" class="form-control form-control-sm"
+                     placeholder="PO Number">
+            </div>
+            <div class="col-md-4">
+              <select name="event_id" class="form-select form-select-sm">
+                <option value="">No event</option>
+                {% for e in events %}
+                <option value="{{ e.id }}">{{ e.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <input type="number" name="amount" class="form-control form-control-sm"
+                     placeholder="Amount (₱)" step="0.01" required>
+            </div>
+            <div class="col-12">
+              <textarea name="description" class="form-control form-control-sm"
+                        placeholder="Description / items" rows="2" required></textarea>
+            </div>
+            <div class="col-md-4">
+              <input type="date" name="delivery_date" class="form-control form-control-sm">
+            </div>
+            <div class="col-md-4">
+              <input type="text" name="delivery_time_window" class="form-control form-control-sm"
+                     placeholder="Time window e.g. 8AM–10AM">
+            </div>
+            <div class="col-md-4">
+              <select name="status" class="form-select form-select-sm">
+                <option value="pending">Pending</option>
+                <option value="downpaid">Downpaid</option>
+                <option value="fully_paid">Fully Paid</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Proof of Payment</label>
+              <input type="file" name="proof_file" class="form-control form-control-sm"
+                     accept="image/*,application/pdf">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary btn-sm mt-2">Add PO</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if client else 'New' }} Client{% endblock %}
+{% block page_title %}{{ 'Edit' if client else 'New' }} Client{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('clients.list_clients') }}">Clients</a> → {{ 'Edit' if client else 'New' }}
+{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;">
+  <div class="me-card">
+    <div class="me-card-header">
+      <h5>{{ '✏️ Edit' if client else '➕ New' }} Client</h5>
+    </div>
+    <div class="me-card-body">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="me-form-label">Full Name *</label>
+            <input type="text" name="full_name" class="me-form-control" required
+                   value="{{ client.full_name if client else '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Pipeline Stage</label>
+            <select name="pipeline_stage" class="me-form-control">
+              {% for s in stages %}
+              <option value="{{ s }}" {{ 'selected' if client and client.pipeline_stage == s }}>
+                {{ labels[s][0] }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Email</label>
+            <input type="email" name="email" class="me-form-control"
+                   value="{{ client.email if client else '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Phone</label>
+            <input type="text" name="phone" class="me-form-control" placeholder="+63 9XX XXX XXXX"
+                   value="{{ client.phone if client else '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Instagram</label>
+            <input type="text" name="instagram" class="me-form-control" placeholder="@handle"
+                   value="{{ client.instagram if client else '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Referred By</label>
+            <input type="text" name="referred_by" class="me-form-control"
+                   value="{{ client.referred_by if client else '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Ocular / Site Visit Date</label>
+            <input type="datetime-local" name="ocular_date" class="me-form-control"
+                   value="{{ client.ocular_date.strftime('%Y-%m-%dT%H:%M') if client and client.ocular_date else '' }}" />
+          </div>
+          <div class="col-12">
+            <label class="me-form-label">Address</label>
+            <textarea name="address" class="me-form-control" rows="2">{{ client.address if client else '' }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="me-form-label">Internal Notes</label>
+            <textarea name="notes" class="me-form-control" rows="3">{{ client.notes if client else '' }}</textarea>
+          </div>
+          <div class="col-12 d-flex gap-2 mt-1">
+            <button type="submit" class="btn-gold">{{ 'Save Changes' if client else 'Create Client' }}</button>
+            <a href="{{ url_for('clients.list_clients') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

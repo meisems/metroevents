@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Inventory Utilization — Metro Events{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-secondary">← Reports</a>
+  <h2>📦 Inventory Utilization</h2>
+</div>
+
+<div class="card shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>Item</th><th>Category</th><th>Total Qty</th>
+          <th>Condition</th><th>Total Reservations</th><th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in utilization %}
+        {% set item = row.item %}
+        <tr>
+          <td>
+            <a href="{{ url_for('inventory.detail', item_id=item.id) }}">
+              {{ item.name }}
+            </a>
+            {% if item.sku %}<br><small class="text-muted">{{ item.sku }}</small>{% endif %}
+          </td>
+          <td><span class="badge bg-secondary">{{ item.category }}</span></td>
+          <td>{{ item.total_qty }}</td>
+          <td>
+            <span class="badge bg-{% if item.condition == 'excellent' %}success{% elif item.condition == 'good' %}info{% elif item.condition == 'fair' %}warning{% else %}danger{% endif %}">
+              {{ item.condition }}
+            </span>
+          </td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <strong>{{ row.total_reservations }}</strong>
+              {% if row.total_reservations == 0 %}
+              <span class="badge bg-danger">Dead Stock</span>
+              {% elif row.total_reservations > 5 %}
+              <span class="badge bg-success">High Demand</span>
+              {% endif %}
+            </div>
+          </td>
+          <td>
+            <div class="progress" style="width:100px;height:8px"
+                 title="{{ row.total_reservations }} reservations">
+              <div class="progress-bar bg-primary"
+                   style="width:{{ [row.total_reservations * 10, 100] | min }}%"></div>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

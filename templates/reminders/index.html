@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Smart Reminders — Metro Events{% endblock %}
+{% block content %}
+<h2>🔔 Smart Reminders</h2>
+<p class="text-muted">As of {{ today.strftime('%B %d, %Y') }}</p>
+
+<div class="row g-3">
+
+  <!-- Upcoming Events -->
+  <div class="col-md-6">
+    <div class="card border-info shadow-sm">
+      <div class="card-header bg-info text-white fw-bold">
+        📅 Events in Next 7 Days ({{ upcoming_events|length }})
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for e in upcoming_events %}
+        <li class="list-group-item d-flex justify-content-between">
+          <div>
+            <a href="{{ url_for('events.detail', event_id=e.id) }}">{{ e.name }}</a>
+            <br><small class="text-muted">{{ e.venue_name or '—' }}</small>
+          </div>
+          <div class="text-end">
+            <span class="badge bg-{{ e.status_color }}">{{ e.status }}</span>
+            <br><small class="fw-bold">{{ e.event_date | dateformat }}</small>
+            <br><small class="text-{% if e.days_until <= 1 %}danger{% elif e.days_until <= 3 %}warning{% else %}muted{% endif %}">
+              {{ e.days_until }} day{{ 's' if e.days_until != 1 else '' }} away
+            </small>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No events in next 7 days.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Overdue Payments -->
+  <div class="col-md-6">
+    <div class="card border-danger shadow-sm">
+      <div class="card-header bg-danger text-white fw-bold">
+        ❗ Overdue Payments ({{ overdue_payments|length }})
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for p in overdue_payments %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('events.detail', event_id=p.event_id, tab='payments') }}">
+              {{ p.event.name }}
+            </a>
+            <br><small>{{ p.label or p.payment_type }}</small>
+          </div>
+          <div class="text-end">
+            <strong class="text-danger">{{ p.amount | peso }}</strong>
+            <br><small class="text-danger">Due {{ p.due_date | dateformat }}</small>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No overdue payments 🎉</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Due Soon -->
+  <div class="col-md-6">
+    <div class="card border-warning shadow-sm">
+      <div class="card-header bg-warning fw-bold">
+        ⏰ Payments Due in 3 Days ({{ due_soon_payments|length }})
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for p in due_soon_payments %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('events.detail', event_id=p.event_id, tab='payments') }}">
+              {{ p.event.name }}
+            </a>
+            <br><small>{{ p.label or p.payment_type }}</small>
+          </div>
+          <div class="text-end">
+            <strong>{{ p.amount | peso }}</strong>
+            <br><small class="text-warning">Due {{ p.due_date | dateformat }}</small>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">None due soon.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Supplier deliveries -->
+  <div class="col-md-6">
+    <div class="card border-primary shadow-sm">
+      <div class="card-header bg-primary text-white fw-bold">
+        🚚 Supplier Deliveries (Today/Tomorrow)
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for po in supplier_due %}
+        <li class="list-group-item d-flex justify-content-between">
+          <div>
+            <strong>{{ po.supplier.company_name }}</strong>
+            <br><small>{{ po.description[:50] }}…</small>
+          </div>
+          <div class="text-end">
+            <small>{{ po.delivery_date | dateformat }}</small>
+            <br><small class="text-muted">{{ po.delivery_time_window or '—' }}</small>
+          </div>
+        </li>
+        {% else %}
+        <li class="list-group-item text-muted">No deliveries today/tomorrow.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+
+  <!-- Stale clients -->
+  {% if stale_clients %}
+  <div class="col-12">
+    <div class="card border-secondary shadow-sm">
+      <div class="card-header fw-bold">
+        👻 Stale Clients — Proposal Sent, No Follow-up in 7+ Days
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for c in stale_clients %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <a href="{{ url_for('clients.detail', client_id=c.id) }}">{{ c.full_name }}</a>
+            <br><small class="text-muted">{{ c.phone or c.email or '—' }}</small>
+          </div>
+          <div class="text-end">
+            <small class="text-muted">
+              Last contacted: {{ c.last_contacted | dateformat if c.last_contacted else 'Never' }}
+            </small>
+            <br>
+            <a href="{{ url_for('reminders.templates') }}?client_id={{ c.id }}&template=follow_up"
+               class="btn btn-sm btn-outline-warning py-0">📝 Follow-up Template</a>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+<div class="mt-3">
+  <a href="{{ url_for('reminders.templates') }}" class="btn btn-outline-primary">
+    📝 Taglish Message Templates
+  </a>
+</div>
+{% endblock %}

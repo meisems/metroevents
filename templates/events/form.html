@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if event else 'New' }} Event{% endblock %}
+{% block page_title %}{{ 'Edit' if event else 'New' }} Event{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('events.list_events') }}">Events</a> → {{ 'Edit' if event else 'New' }}
+{% endblock %}
+
+{% block content %}
+<div style="max-width:760px;">
+  <div class="me-card">
+    <div class="me-card-header">
+      <h5>{{ '✏️ Edit Event' if event else '🎉 Create New Event' }}</h5>
+    </div>
+    <div class="me-card-body">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="row g-3">
+
+          <div class="col-12">
+            <label class="me-form-label">Event Name *</label>
+            <input type="text" name="name" class="me-form-control" required placeholder="e.g. JD & Ana Wedding"
+                   value="{{ event.name if event else '' }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="me-form-label">Client *</label>
+            <select name="client_id" class="me-form-control" required>
+              <option value="">Select client…</option>
+              {% for c in clients %}
+              <option value="{{ c.id }}" {{ 'selected' if event and event.client_id == c.id }}>
+                {{ c.full_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="me-form-label">Coordinator</label>
+            <select name="coordinator_id" class="me-form-control">
+              <option value="">Unassigned</option>
+              {% for u in coordinators %}
+              <option value="{{ u.id }}" {{ 'selected' if event and event.coordinator_id == u.id }}>
+                {{ u.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="me-form-label">Event Type *</label>
+            <select name="event_type" class="me-form-control" required>
+              {% for t in types %}
+              <option value="{{ t }}" {{ 'selected' if event and event.event_type == t }}>{{ t|title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="me-form-label">Status</label>
+            <select name="status" class="me-form-control">
+              {% for s in statuses %}
+              <option value="{{ s }}" {{ 'selected' if event and event.status == s }}>{{ s|replace('_',' ')|title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="col-md-4">
+            <label class="me-form-label">Event Date *</label>
+            <input type="date" name="event_date" class="me-form-control" required
+                   value="{{ event.event_date.strftime('%Y-%m-%d') if event and event.event_date else '' }}" />
+          </div>
+
+          <div class="col-md-3">
+            <label class="me-form-label">Start Time</label>
+            <input type="time" name="event_time_start" class="me-form-control"
+                   value="{{ event.event_time_start.strftime('%H:%M') if event and event.event_time_start else '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="me-form-label">End Time</label>
+            <input type="time" name="event_time_end" class="me-form-control"
+                   value="{{ event.event_time_end.strftime('%H:%M') if event and event.event_time_end else '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="me-form-label">Call Time (Crew)</label>
+            <input type="time" name="call_time" class="me-form-control"
+                   value="{{ event.call_time.strftime('%H:%M') if event and event.call_time else '' }}" />
+          </div>
+          <div class="col-md-3">
+            <label class="me-form-label">Setup Deadline</label>
+            <input type="time" name="setup_deadline" class="me-form-control"
+                   value="{{ event.setup_deadline.strftime('%H:%M') if event and event.setup_deadline else '' }}" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="me-form-label">Venue Name</label>
+            <input type="text" name="venue_name" class="me-form-control"
+                   value="{{ event.venue_name if event else '' }}" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Package Name</label>
+            <input type="text" name="package_name" class="me-form-control" placeholder="e.g. Metro Gold Package"
+                   value="{{ event.package_name if event else '' }}" />
+          </div>
+
+          <div class="col-12">
+            <label class="me-form-label">Venue Address</label>
+            <textarea name="venue_address" class="me-form-control" rows="2">{{ event.venue_address if event else '' }}</textarea>
+          </div>
+
+          <div class="col-md-6">
+            <label class="me-form-label">Color Palette <small class="text-muted">(comma-separated hex, e.g. #FFF, #C9A84C)</small></label>
+            <input type="text" id="colorPaletteInput" name="color_palette" class="me-form-control"
+                   placeholder="#E8C97A, #1A1A2E, #FFFFFF"
+                   value="{{ event.color_palette if event else '' }}" />
+            <div id="colorPalettePreview" class="mt-2"></div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="me-form-label">Total Budget</label>
+            <input type="number" name="total_budget" class="me-form-control" min="0" step="0.01"
+                   value="{{ event.total_budget if event else '' }}" />
+          </div>
+
+          <div class="col-12">
+            <label class="me-form-label">Team Notes</label>
+            <textarea name="team_notes" class="me-form-control" rows="2">{{ event.team_notes if event else '' }}</textarea>
+          </div>
+          <div class="col-12">
+            <label class="me-form-label">Internal Notes</label>
+            <textarea name="internal_notes" class="me-form-control" rows="2">{{ event.internal_notes if event else '' }}</textarea>
+          </div>
+
+          <div class="col-12 d-flex gap-2 mt-1">
+            <button type="submit" class="btn-gold">{{ 'Save Changes' if event else 'Create Event' }}</button>
+            <a href="{{ url_for('events.list_events') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

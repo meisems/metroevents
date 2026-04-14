@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}{{ event.name }} — Client Portal{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="{{ url_for('portal.home') }}" class="btn btn-sm btn-outline-secondary">← My Events</a>
+  <h2>{{ event.name }}</h2>
+</div>
+<p class="text-muted">
+  📅 {{ event.event_date | dateformat }} &nbsp;|&nbsp;
+  📍 {{ event.venue_name or '—' }} &nbsp;|&nbsp;
+  🎨 {{ event.package_name or '—' }}
+</p>
+
+<!-- Nav tabs -->
+<ul class="nav nav-tabs mb-3" id="portalTabs">
+  <li class="nav-item">
+    <a class="nav-link active" data-bs-toggle="tab" href="#tab-quote">📄 Proposal</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-payments">💰 Payments</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-moodboard">🖼️ Moodboard</a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-feedback">⭐ Feedback</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <!-- PROPOSAL TAB -->
+  <div class="tab-pane fade show active" id="tab-quote">
+    {% if quote %}
+    <div class="card shadow-sm" style="max-width:700px">
+      <div class="card-header d-flex justify-content-between">
+        <strong>{{ quote.label or 'v' ~ quote.version }} — {{ quote.package_name or '' }}</strong>
+        {% if quote.is_approved %}
+        <span class="badge bg-success">✅ Approved by {{ quote.approved_by }}</span>
+        {% else %}
+        <span class="badge bg-warning">Pending Approval</span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <table class="table table-sm">
+          <thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead>
+          <tbody>
+            {% for item in quote.items %}
+            <tr>
+              <td>{{ item.item_name }}
+                {% if item.is_addon %}<span class="badge bg-info">Add-on</span>{% endif %}
+              </td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.total_price | peso }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr><td colspan="2" class="text-end"><strong>Subtotal</strong></td>
+                <td>{{ quote.subtotal | peso }}</td></tr>
+            {% if quote.discount_type != 'none' %}
+            <tr><td colspan="2" class="text-end text-danger">Discount</td>
+                <td class="text-danger">- {{ quote.discount_value | peso }}</td></tr>
+            {% endif %}
+            <tr class="fw-bold"><td colspan="2" class="text-end">GRAND TOTAL</td>
+                <td class="text-primary fs-5">{{ quote.grand_total | peso }}</td></tr>
+          </tfoot>
+        </table>
+        {% if quote.inclusions_note %}
+        <p class="small text-muted"><strong>Inclusions:</strong> {{ quote.inclusions_note }}</p>
+        {% endif %}
+        {% if quote.terms_note %}
+        <p class="small text-muted"><strong>Terms:</strong> {{ quote.terms_note }}</p>
+        {% endif %}
+
+        <div class="d-flex gap-2 mt-3">
+          <a href="{{ url_for('quotes.quote_pdf', event_id=event.id, quote_id=quote.id) }}"
+             class="btn btn-outline-secondary btn-sm">📄 Download PDF</a>
+          {% if not quote.is_approved %}
+          <form method="POST"
+                action="{{ url_for('portal.approve_quote', event_id=event.id, quote_id=quote.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-success btn-sm">✅ Approve This Quote</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No proposal sent yet. Our team will send one soon! 😊</div>
+    {% endif %}
+  </div>
+
+  <!-- PAYMENTS TAB -->
+  <div class="tab-pane fade" id="tab-payments">
+    <div class="card shadow-sm">
+      <div class="card-body p-0">
+        <table class="table mb-0">
+          <thead class="table-light">
+            <tr><th>Type</th><th>Amount</th><th>Due</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            {% for p in payments %}
+            <tr>
+              <td>{{ p.label or p.payment_type }}</td>
+              <td>{{ p.amount | peso }}</td>
+              <td>{{ p.due_date | dateformat if p.due_date else '—' }}</td>
+              <td><span class="badge bg-{{ p.status_color }}">{{ p.status }}</span></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="text-muted text-center">No payment records yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="mt-3">
+      <div class="alert alert-info">
+        <strong>Balance Remaining: {{ event.balance_due | peso }}</strong>
+        <br>For payment methods, please contact your coordinator. 🙏
+      </div>
+    </div>
+  </div>
+
+  <!-- MOODBOARD TAB -->
+  <div class="tab-pane fade" id="tab-moodboard">
+    <div class="mb-3">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">📌 Upload Inspiration Peg</div>
+        <div class="card-body">
+          <form method="POST"
+                action="{{ url_for('portal.upload_peg', event_id=event.id) }}"
+                enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-2">
+              <div class="col-md-4">
+                <input type="text" name="title" class="form-control form-control-sm"
+                       placeholder="Title (optional)">
+              </div>
+              <div class="col-md-4">
+                <select name="category" class="form-select form-select-sm">
+                  {% for cat in peg_categories %}
+                  <option value="{{ cat }}">{{ cat.replace('_',' ').title() }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-4">
+                <input type="url" name="source_url" class="form-control form-control-sm"
+                       placeholder="Pinterest/IG link (optional)">
+              </div>
+              <div class="col-md-6">
+                <input type="file" name="peg_image" class="form-control form-control-sm"
+                       accept="image/*">
+              </div>
+              <div class="col-md-6">
+                <input type="url" name="image_url_ext" class="form-control form-control-sm"
+                       placeholder="Or paste image URL">
+              </div>
+              <div class="col-12">
+                <textarea name="notes" class="form-control form-control-sm" rows="2"
+                          placeholder="Notes for our team…"></textarea>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm mt-2">Upload Peg ✨</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-2">
+      {% for peg in pegs %}
+      <div class="col-6 col-md-3">
+        <div class="card shadow-sm">
+          <img src="{{ peg.image_url }}" class="card-img-top" alt="{{ peg.title }}"
+               style="height:150px;object-fit:cover">
+          <div class="card-body p-2">
+            <small class="text-muted">{{ peg.category.replace('_',' ').title() }}</small>
+            <p class="mb-1 small">{{ peg.title or '—' }}</p>
+            {% if peg.is_approved %}
+            <span class="badge bg-success">✅ Approved</span>
+            {% elif not peg.is_client_uploaded %}
+            <form method="POST"
+                  action="{{ url_for('portal.approve_peg', event_id=event.id, peg_id=peg.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-success w-100 py-0">
+                ✅ Approve
+              </button>
+            </form>
+            {% else %}
+            <span class="badge bg-secondary">Your upload</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-12"><p class="text-muted">No pegs yet.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- FEEDBACK TAB -->
+  <div class="tab-pane fade" id="tab-feedback">
+    {% if event.status == 'done' or event.status == 'event_day' %}
+    <div class="card shadow-sm" style="max-width:600px">
+      <div class="card-header fw-bold">⭐ Share Your Experience</div>
+      <div class="card-body">
+        <a href="{{ url_for('portal.submit_feedback', event_id=event.id) }}"
+           class="btn btn-primary">Rate Your Event 🌟</a>
+      </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">Feedback will be available after your event. ✨</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Taglish Templates — Metro Events{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="{{ url_for('reminders.index') }}" class="btn btn-sm btn-outline-secondary">← Reminders</a>
+  <h2>📝 Taglish Auto-Reply Templates</h2>
+</div>
+
+<div class="row g-3">
+  <!-- Template Selector -->
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-header fw-bold">Templates</div>
+      <div class="list-group list-group-flush" id="tplList">
+        {% for key, tpl in templates.items() %}
+        <a href="?template={{ key }}&client_id={{ selected_client.id if selected_client else '' }}&event_id={{ selected_event.id if selected_event else '' }}"
+           class="list-group-item list-group-item-action {% if key == tpl_key %}active{% endif %}">
+          {{ tpl.label }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Client & Event selectors -->
+    <div class="card shadow-sm mt-3">
+      <div class="card-header fw-bold">Fill-in Data</div>
+      <div class="card-body">
+        <form method="get">
+          <input type="hidden" name="template" value="{{ tpl_key }}">
+          <div class="mb-2">
+            <label class="form-label small">Client</label>
+            <select name="client_id" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">— Choose Client —</option>
+              {% for c in clients %}
+              <option value="{{ c.id }}" {% if selected_client and c.id == selected_client.id %}selected{% endif %}>
+                {{ c.full_name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small">Event</label>
+            <select name="event_id" class="form-select form-select-sm" onchange="this.form.submit()">
+              <option value="">— Choose Event —</option>
+              {% for e in events %}
+              <option value="{{ e.id }}" {% if selected_event and e.id == selected_event.id %}selected{% endif %}>
+                {{ e.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Preview -->
+  <div class="col-md-8">
+    <div class="card shadow-sm h-100">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Preview</span>
+        <button class="btn btn-sm btn-outline-secondary" onclick="copyText()">📋 Copy</button>
+      </div>
+      <div class="card-body">
+        <label class="form-label small text-muted">Subject:</label>
+        <div class="form-control bg-light mb-3" id="subject">{{ rendered_subject }}</div>
+
+        <label class="form-label small text-muted">Message Body:</label>
+        <textarea class="form-control font-monospace" id="body" rows="16"
+                  style="font-size:13px">{{ rendered_body }}</textarea>
+      </div>
+      <div class="card-footer d-flex gap-2">
+        {% if selected_client and selected_client.email %}
+        <a href="mailto:{{ selected_client.email }}?subject={{ rendered_subject | urlencode }}"
+           class="btn btn-primary btn-sm">📧 Open in Mail</a>
+        {% endif %}
+        {% if selected_client and selected_client.phone %}
+        <a href="https://wa.me/{{ selected_client.phone | replace(' ','') | replace('+','') }}"
+           target="_blank" class="btn btn-success btn-sm">💬 WhatsApp</a>
+        {% endif %}
+        <button onclick="copyText()" class="btn btn-outline-secondary btn-sm">
+          📋 Copy Body
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyText() {
+  const body = document.getElementById('body');
+  body.select();
+  document.execCommand('copy');
+  const btn = event.target;
+  btn.textContent = '✅ Copied!';
+  setTimeout(() => btn.textContent = '📋 Copy Body', 2000);
+}
+</script>
+{% endblock %}

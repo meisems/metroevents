@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Add User{% endblock %}
+{% block page_title %}Add Team Member{% endblock %}
+{% block breadcrumb %}Admin → Users → New{% endblock %}
+
+{% block content %}
+<div style="max-width:560px;">
+  <div class="me-card">
+    <div class="me-card-header">
+      <h5>🔑 Create New User</h5>
+    </div>
+    <div class="me-card-body">
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="me-form-label">Full Name *</label>
+            <input type="text" name="name" class="me-form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Phone</label>
+            <input type="text" name="phone" class="me-form-control" placeholder="+63 9XX XXX XXXX" />
+          </div>
+          <div class="col-12">
+            <label class="me-form-label">Email Address *</label>
+            <input type="email" name="email" class="me-form-control" required />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Role *</label>
+            <select name="role" class="me-form-control">
+              <option value="coordinator">Coordinator</option>
+              <option value="designer">Designer / Stylist</option>
+              <option value="warehouse">Warehouse / Logistics</option>
+              <option value="admin">Admin</option>
+              <option value="client">Client Portal</option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Password *</label>
+            <input type="password" name="password" class="me-form-control" required minlength="6" />
+          </div>
+          <div class="col-12 d-flex gap-2 mt-2">
+            <button type="submit" class="btn-gold">Create User</button>
+            <a href="{{ url_for('auth.users_list') }}" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

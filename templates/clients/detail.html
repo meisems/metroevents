@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ client.full_name }}{% endblock %}
+{% block page_title %}{{ client.full_name }}{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('clients.list_clients') }}">Clients</a> → {{ client.full_name }}
+{% endblock %}
+{% block topbar_actions %}
+  <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn-outline-gold">✏️ Edit</a>
+  {% if client.next_action %}
+  <form action="{{ url_for('clients.advance_stage', client_id=client.id) }}" method="POST" class="d-inline">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    <button type="submit" class="btn-gold">{{ client.next_action }} →</button>
+  </form>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <!-- Client info -->
+  <div class="col-lg-4">
+    <div class="me-card mb-4">
+      <div class="me-card-body">
+        <div class="text-center mb-3">
+          <div class="me-avatar mx-auto" style="width:64px;height:64px;font-size:1.4rem;">
+            {{ client.full_name[0]|upper }}
+          </div>
+          <div style="font-weight:800;font-size:1.1rem;margin-top:10px;">{{ client.full_name }}</div>
+          <span class="badge bg-{{ client.stage_color }} mt-1">{{ client.stage_label }}</span>
+        </div>
+
+        <hr class="divider" />
+
+        {% macro info_row(icon, label, val) %}
+        <div class="d-flex gap-2 mb-2" style="font-size:.875rem;">
+          <span>{{ icon }}</span>
+          <div><span style="color:#8896A5;">{{ label }}:</span> {{ val or '—' }}</div>
+        </div>
+        {% endmacro %}
+
+        {{ info_row('📧', 'Email', client.email) }}
+        {{ info_row('📱', 'Phone', client.phone) }}
+        {{ info_row('📸', 'Instagram', client.instagram) }}
+        {{ info_row('📍', 'Address', client.address) }}
+        {{ info_row('🔗', 'Referred by', client.referred_by) }}
+        {{ info_row('📅', 'Inquiry Date', client.inquiry_date|dateformat) }}
+        {% if client.ocular_date %}
+        {{ info_row('🏠', 'Ocular', client.ocular_date|dateformat('%b %d, %Y %I:%M %p')) }}
+        {% endif %}
+
+        {% if client.notes %}
+        <hr class="divider" />
+        <div class="section-title">Notes</div>
+        <p style="font-size:.875rem;color:#4A5568;">{{ client.notes }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Pipeline -->
+    <div class="me-card">
+      <div class="me-card-header"><h5>🔄 Pipeline</h5></div>
+      <div class="me-card-body p-0">
+        {% for s in stages %}
+        <div style="padding:8px 16px;border-bottom:1px solid #F0F2F7;display:flex;align-items:center;gap:10px;">
+          <div style="width:10px;height:10px;border-radius:50%;background:
+            {{ '#C9A84C' if client.pipeline_stage == s else ('#48BB78' if stages.index(s) < stages.index(client.pipeline_stage) else '#E2E8F0') }};">
+          </div>
+          <span style="font-size:.82rem;{{ 'font-weight:700;color:#1A1A2E;' if client.pipeline_stage == s else 'color:#A0AEC0;' }}">
+            {{ labels[s][0] }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Events -->
+  <div class="col-lg-8">
+    <div class="me-card">
+      <div class="me-card-header">
+        <h5>🎉 Events ({{ events|length }})</h5>
+        <a href="{{ url_for('events.new_event') }}" class="btn-gold" style="font-size:.8rem;padding:6px 12px;">
+          ➕ New Event
+        </a>
+      </div>
+      <div class="me-card-body p-0">
+        {% if events %}
+        <table class="me-table">
+          <thead><tr><th>Event</th><th>Date</th><th>Venue</th><th>Status</th><th>Balance</th></tr></thead>
+          <tbody>
+            {% for e in events %}
+            <tr>
+              <td>
+                <a href="{{ url_for('events.detail', event_id=e.id) }}" style="font-weight:700;color:#1A1A2E;">
+                  {{ e.name }}
+                </a>
+                <div class="text-muted-sm">{{ e.event_type|title }}</div>
+              </td>
+              <td>{{ e.event_date|dateformat }}</td>
+              <td class="text-muted-sm">{{ e.venue_name or '—' }}</td>
+              <td><span class="badge bg-{{ e.status_color }}">{{ e.status|replace('_',' ')|title }}</span></td>
+              <td>
+                {% if e.balance_due > 0 %}
+                <span style="color:#F56565;font-weight:700;">{{ e.balance_due|peso }}</span>
+                {% else %}
+                <span style="color:#48BB78;font-weight:700;">PAID ✓</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <div class="p-4 text-center text-muted-sm">No events yet.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

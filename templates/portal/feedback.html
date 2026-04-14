@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Feedback — {{ event.name }}{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-2 mb-3">
+  <a href="{{ url_for('portal.event_overview', event_id=event.id) }}"
+     class="btn btn-sm btn-outline-secondary">← Back</a>
+  <h2>⭐ Rate Your Experience</h2>
+</div>
+<p class="text-muted">{{ event.name }} · {{ event.event_date | dateformat }}</p>
+
+<div class="card shadow-sm" style="max-width:600px">
+  <div class="card-body">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      {% set aspects = [
+        ('rating_overall', 'Overall Experience 🌟'),
+        ('rating_design', 'Design & Styling 🎨'),
+        ('rating_coordination', 'Coordination 📋'),
+        ('rating_on_time', 'On-Time Setup ⏰'),
+        ('rating_crew', 'Crew Professionalism 👥'),
+        ('rating_value', 'Value for Money 💰'),
+      ] %}
+
+      {% for field, label in aspects %}
+      <div class="mb-3">
+        <label class="form-label fw-bold">{{ label }}</label>
+        <div class="d-flex gap-2">
+          {% for i in range(1, 6) %}
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="{{ field }}"
+                   id="{{ field }}_{{ i }}" value="{{ i }}"
+                   {% if ae and ae[field] == i %}checked{% endif %} required>
+            <label class="form-check-label fs-5" for="{{ field }}_{{ i }}">
+              ★ {{ i }}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">Your Testimonial 💬</label>
+        <textarea name="client_feedback" class="form-control" rows="4"
+                  placeholder="Ibahagi ang inyong karanasan…">{{ ae.client_feedback if ae else '' }}</textarea>
+      </div>
+
+      <div class="mb-3">
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" name="would_recommend"
+                 value="1" id="chkRecommend"
+                 {% if ae and ae.would_recommend %}checked{% endif %}>
+          <label class="form-check-label" for="chkRecommend">
+            I would recommend Metro Events to others ❤️
+          </label>
+        </div>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" name="allow_testimonial"
+                 value="1" id="chkTestimonial"
+                 {% if ae and ae.allow_testimonial %}checked{% endif %}>
+          <label class="form-check-label" for="chkTestimonial">
+            Allow Metro Events to feature my feedback 📣
+          </label>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">Interested in booking another event?</label>
+        <div class="form-check">
+          <input type="checkbox" class="form-check-input" name="next_booking_interest"
+                 value="1" id="chkNext"
+                 {% if ae and ae.next_booking_interest %}checked{% endif %}>
+          <label class="form-check-label" for="chkNext">
+            Yes, I'm interested! 🎉
+          </label>
+        </div>
+        <input type="text" name="next_event_type" class="form-control form-control-sm mt-2"
+               placeholder="What type? (Wedding, Birthday, Corporate…)"
+               value="{{ ae.next_event_type if ae else '' }}">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg w-100">
+        Submit Feedback 💛
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

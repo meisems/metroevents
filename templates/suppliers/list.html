@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Supplier Hub — Metro Events{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>🏭 Supplier Hub</h2>
+  <a href="{{ url_for('suppliers.new_supplier') }}" class="btn btn-primary">
+    ➕ Add Supplier
+  </a>
+</div>
+
+<!-- Filters -->
+<form class="row g-2 mb-3" method="get">
+  <div class="col-auto">
+    <input type="text" name="q" class="form-control" placeholder="Search supplier…"
+           value="{{ search }}">
+  </div>
+  <div class="col-auto">
+    <select name="cat" class="form-select">
+      <option value="">All Categories</option>
+      {% for cat in categories %}
+        <option value="{{ cat }}" {% if cat == cat_filter %}selected{% endif %}>
+          {{ cat }}
+        </option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-auto">
+    <div class="form-check mt-2">
+      <input class="form-check-input" type="checkbox" name="preferred" value="1"
+             id="chkPreferred" {% if preferred_only %}checked{% endif %}>
+      <label class="form-check-label" for="chkPreferred">⭐ Preferred only</label>
+    </div>
+  </div>
+  <div class="col-auto">
+    <button class="btn btn-outline-secondary">Filter</button>
+  </div>
+</form>
+
+<div class="row g-3">
+  {% for supplier in suppliers.items %}
+  <div class="col-md-4">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <h6 class="card-title mb-1">
+            {{ supplier.company_name }}
+            {% if supplier.is_preferred %}<span class="badge bg-warning text-dark">⭐ Preferred</span>{% endif %}
+          </h6>
+          <small class="text-muted">{{ supplier.category }}</small>
+        </div>
+        <p class="text-muted small mb-1">{{ supplier.contact_person or '—' }}</p>
+        <p class="text-muted small mb-2">{{ supplier.phone or '—' }}</p>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge bg-{% if supplier.reliability_pct >= 90 %}success{% elif supplier.reliability_pct >= 70 %}warning{% else %}danger{% endif %}">
+            {{ supplier.reliability_pct }}% on-time
+          </span>
+          <span class="text-warning">{{ '★' * (supplier.rating | int) }}</span>
+        </div>
+      </div>
+      <div class="card-footer bg-transparent">
+        <a href="{{ url_for('suppliers.detail', supplier_id=supplier.id) }}"
+           class="btn btn-sm btn-outline-primary">View</a>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12">
+    <div class="alert alert-info">No suppliers found. <a href="{{ url_for('suppliers.new_supplier') }}">Add your first supplier.</a></div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if suppliers.pages > 1 %}
+<nav class="mt-3">
+  <ul class="pagination">
+    {% for p in suppliers.iter_pages() %}
+      {% if p %}
+        <li class="page-item {% if p == suppliers.page %}active{% endif %}">
+          <a class="page-link" href="?page={{ p }}&q={{ search }}&cat={{ cat_filter }}">{{ p }}</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">…</span></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}New Quote{% endblock %}
+{% block page_title %}Create Quote{% endblock %}
+{% block breadcrumb %}
+  <a href="{{ url_for('events.detail', event_id=event.id) }}">{{ event.name }}</a> → Quote
+{% endblock %}
+
+{% block content %}
+<div class="me-card">
+  <div class="me-card-header">
+    <h5>💰 New Quote — {{ event.name }}</h5>
+  </div>
+  <div class="me-card-body">
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="me-form-label">Package Name</label>
+          <input type="text" name="package_name" class="me-form-control" placeholder="e.g. Metro Gold Package" />
+        </div>
+        <div class="col-md-4">
+          <label class="me-form-label">Quote Label</label>
+          <input type="text" name="label" class="me-form-control" placeholder="e.g. v1 - Initial Proposal" />
+        </div>
+        <div class="col-md-4">
+          <label class="me-form-label">Package Description</label>
+          <input type="text" name="package_description" class="me-form-control" />
+        </div>
+      </div>
+
+      <!-- Line Items -->
+      <div class="section-title mb-2">Line Items</div>
+      <div class="me-card mb-3" style="border:1px solid #E8ECF3;">
+        <div class="me-card-body p-0">
+          <div class="table-responsive">
+            <table class="me-table">
+              <thead>
+                <tr>
+                  <th style="width:120px">Category</th>
+                  <th>Item Name</th>
+                  <th style="width:70px">Qty</th>
+                  <th style="width:70px">Unit</th>
+                  <th style="width:130px">Unit Price</th>
+                  <th style="width:130px" class="text-end">Total</th>
+                  <th style="width:50px" title="Add-on?">+</th>
+                  <th style="width:40px"></th>
+                </tr>
+              </thead>
+              <tbody id="quoteItemsBody">
+                <tr>
+                  <td><input class="me-form-control" name="item_category[]" placeholder="Category" /></td>
+                  <td><input class="me-form-control" name="item_name[]" placeholder="Item name" required /></td>
+                  <td><input class="me-form-control item-qty" name="item_qty[]" type="number" value="1" min="0.01" step="0.01" style="width:70px" /></td>
+                  <td>
+                    <select class="me-form-control" name="item_unit[]" style="width:70px">
+                      <option>pc</option><option>set</option><option>lot</option><option>hr</option><option>day</option>
+                    </select>
+                  </td>
+                  <td><input class="me-form-control item-price" name="item_price[]" type="number" value="0" min="0" step="0.01" /></td>
+                  <td class="item-total text-end" style="font-weight:700">₱0.00</td>
+                  <td><input type="checkbox" name="item_addon[]" value="0" title="Is add-on?" /></td>
+                  <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">✕</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="p-3">
+            <button type="button" id="addQuoteItem" class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">
+              ➕ Add Line Item
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discount, Tax, Totals -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <label class="me-form-label">Discount Type</label>
+          <select id="discountType" name="discount_type" class="me-form-control">
+            <option value="none">None</option>
+            <option value="percent">Percentage (%)</option>
+            <option value="fixed">Fixed Amount (₱)</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="me-form-label">Discount Value</label>
+          <input type="number" id="discountValue" name="discount_value" class="me-form-control" value="0" min="0" step="0.01" />
+        </div>
+        <div class="col-md-3">
+          <label class="me-form-label">Discount Reason</label>
+          <input type="text" name="discount_reason" class="me-form-control" placeholder="e.g. Referral discount" />
+        </div>
+        <div class="col-md-2">
+          <label class="me-form-label">Tax (%)</label>
+          <input type="number" id="taxPercent" name="tax_percent" class="me-form-control" value="0" min="0" step="0.01" />
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <div style="background:#F9F6EF;border-radius:8px;padding:10px 14px;width:100%;">
+            <div class="text-muted-sm">Subtotal: <span id="calcSubtotal">₱0.00</span></div>
+            <div class="text-muted-sm">Discount: <span id="calcDiscount">₱0.00</span></div>
+            <div class="text-muted-sm">Tax: <span id="calcTax">₱0.00</span></div>
+            <div style="font-weight:800;font-size:1rem;color:#C9A84C;">TOTAL: <span id="calcGrandTotal">₱0.00</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Schedule -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <label class="me-form-label">Downpayment Amount</label>
+          <input type="number" name="downpayment_amount" class="me-form-control" value="0" min="0" step="0.01" />
+        </div>
+        <div class="col-md-3">
+          <label class="me-form-label">Downpayment Due</label>
+          <input type="date" name="downpayment_due" class="me-form-control" />
+        </div>
+        <div class="col-md-3">
+          <label class="me-form-label">Balance Due Date</label>
+          <input type="date" name="balance_due_date" class="me-form-control" />
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="me-form-label">Inclusions Note</label>
+          <textarea name="inclusions_note" class="me-form-control" rows="4"
+                    placeholder="What's included in the package…"></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="me-form-label">Exclusions Note</label>
+          <textarea name="exclusions_note" class="me-form-control" rows="4"
+                    placeholder="What's NOT included…"></textarea>
+        </div>
+        <div class="col-md-4">
+          <label class="me-form-label">Terms & Conditions</label>
+          <textarea name="terms_note" class="me-form-control" rows="4"
+                    placeholder="Payment terms, cancellation policy…"></textarea>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn-gold">💾 Save Quote</button>
+        <a href="{{ url_for('events.detail', event_id=event.id, tab='quote') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
