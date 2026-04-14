@@ -6,8 +6,10 @@ psycopg2-binary==2.9.11
 Flask-Login==0.6.3
 Flask-Migrate==4.0.5
 Flask-WTF==1.2.1
-Werkzeug==3.0.1
 python-dotenv==1.0.1
 reportlab==4.1.0
-Pillow==12.0.0
+Pillow>=12.0.0
 qrcode[pil]==7.4.2
+
+# REMOVE Werkzeug==3.0.1 entirely. 
+# Flask will automatically install the version it needs.
