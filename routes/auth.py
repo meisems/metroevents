@@ -62,8 +62,11 @@ def register():
         pwd   = request.form.get("password", "")
         phone = request.form.get("phone", "").strip()
         
-        # If first user ever, force 'admin' role, otherwise get from form
-        role = "admin" if user_count == 0 else request.form.get("role", "coordinator")
+        # Determine role: force admin for user #1, else check form
+        if user_count == 0:
+            role = "admin"
+        else:
+            role = request.form.get("role", "coordinator")
 
         if User.query.filter_by(email=email).first():
             flash("Email already in use.", "warning")
@@ -80,6 +83,7 @@ def register():
             flash(f"User {name} created successfully.", "success")
             return redirect(url_for("auth.users_list"))
             
+    # CRITICAL: This ensures the page renders on GET requests
     return render_template("auth/register.html", is_first_user=(user_count == 0))
 
 
