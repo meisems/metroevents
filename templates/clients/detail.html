@@ -286,3 +286,96 @@
           <td>{{ item.quantity }} {{ item.unit }}</td>
           <td class="text-end">{{ item.total_price|peso }}</td>
         </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="text-center py-5 text-muted-sm">No quote yet. Create one to get started! 💰</div>
+{% endif %}
+
+{# =================== CHECKLIST =================== #}
+{% elif tab == 'checklist' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">✅ Checklist</h5>
+</div>
+{% for item in event.checklist_items.all() %}
+<div class="checklist-item {{ 'done' if item.is_done }} px-3">
+  <div class="check-title">{{ item.title }}</div>
+</div>
+{% endfor %}
+
+{# =================== TASKS =================== #}
+{% elif tab == 'tasks' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">📌 Tasks</h5>
+  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addTaskForm">➕ Add Task</button>
+</div>
+<div class="me-card">
+  <div class="me-card-body p-0">
+    <table class="me-table">
+      <thead>
+        <tr><th>Task</th><th>Category</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for t in event.tasks.all() %}
+        <tr>
+          <td>{{ t.title }}</td>
+          <td>{{ t.category|replace('_',' ')|title }}</td>
+          <td><span class="badge bg-{{ 'success' if t.is_done else 'secondary' }}">{{ 'Done' if t.is_done else 'Pending' }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# =================== PAYMENTS =================== #}
+{% elif tab == 'payments' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">💸 Payments</h5>
+  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPaymentForm">➕ Record Payment</button>
+</div>
+<div class="me-card">
+  <div class="me-card-body p-0">
+    <table class="me-table">
+      <thead>
+        <tr><th>Label</th><th>Amount</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for p in event.payments.all() %}
+        <tr>
+          <td>{{ p.label }}</td>
+          <td>{{ p.amount|peso }}</td>
+          <td><span class="badge bg-{{ p.status_color }}">{{ p.status|title }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# =================== EVENT LOG =================== #}
+{% elif tab == 'log' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">📝 Event Day Log</h5>
+  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addLogForm">➕ Add Entry</button>
+</div>
+<div class="timeline">
+  {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
+  {% for entry in logs %}
+  <div class="timeline-item">
+    <div class="timeline-content">
+      <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
+      <div class="text-muted-sm">{{ entry.logged_at.strftime('%I:%M %p') }}</div>
+    </div>
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted-sm">No log entries yet.</div>
+  {% endfor %}
+</div>
+
+{% endif %}
+</div>
+{% endblock %}
