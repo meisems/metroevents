@@ -14,7 +14,7 @@ The core philosophy of the application is a "One Event = One Workspace" logic, e
 ## Tech Stack
 * **Frontend:** HTML, CSS, JavaScript (rendered via Jinja2 templates)
 * **Backend:** Python (Flask)
-* **Database:** SQLite (`metro_events.db`)
+* **Database:** SQLAlchemy (PostgreSQL/SQLite), SQLite ('metro_events.db')
 
 ## Project Structure
 ```text
@@ -29,3 +29,15 @@ metroevents/
 ├── seed.py             # Utility to populate the database with initial sample data
 ├── Procfile            # Deployment instructions (e.g., for Heroku)
 └── requirements.txt    # Required Python packages and dependencies
+
+## Getting Started
+
+### Prerequisites
+Make sure you have Python installed. It is highly recommended to use a virtual environment.
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/meisems/metroevents.git](https://github.com/meisems/metroevents.git)
+   cd metroevents
