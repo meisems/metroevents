@@ -1,4 +1,4 @@
-# Metro Events
+# Metro Events (Project MVP)
 
 ## Overview
 Metro Events is a comprehensive Event Resource Management (ERM) system designed to streamline the event planning process. Originally developed for a software design laboratory project, this system provides event organizers with robust tools to manage clients, track event progress, and generate detailed estimates. 
@@ -59,7 +59,7 @@ pip install -r requirements.txt
 ```
 
 # 4. Initialize the Database:
-# Run the seed script to set up the local SQLite database and populate it with initial sample data.
+Run the seed script to set up the local SQLite database and populate it with initial sample data.
 ```Bash
 python seed.py
 ```
