@@ -38,12 +38,12 @@ Make sure you have Python installed. It is highly recommended to use a virtual e
 
 ### Installation
 
-## 1. Clone the repository:
+# 1. Clone the repository:
    ```bash
    git clone [https://github.com/meisems/metroevents.git](https://github.com/meisems/metroevents.git)
    cd metroevents
    ```
-## 2. Create and activate a virtual environment:
+# 2. Create and activate a virtual environment:
 
 ```Bash
 python -m venv venv
@@ -53,18 +53,18 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-## 3. Install the dependencies:
+# 3. Install the dependencies:
 ```Bash
 pip install -r requirements.txt
 ```
 
-## 4. Initialize the Database:
-### Run the seed script to set up the local SQLite database and populate it with initial sample data.
+# 4. Initialize the Database:
+# Run the seed script to set up the local SQLite database and populate it with initial sample data.
 ```Bash
 python seed.py
 ```
 
-### 5. Run the Application:
+# 5. Run the Application:
 ```Bash
 python run.py
 ```
