@@ -20,7 +20,7 @@
     <div class="d-flex gap-2 pb-2">
       <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">✏️ Edit</a>
       {% if current_user.is_admin %}
-      <form action="{{ url_for('events.delete_event', event_id=event.id) }}" method="POST" data-confirm="Delete this event permanently?">
+      <form action="{{ url_for('events.delete_event', event_id=event.id) }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <button type="submit" class="btn btn-sm btn-outline-danger">🗑</button>
       </form>
@@ -29,7 +29,7 @@
   </div>
 
   <div class="me-workspace-tabs">
-    {% set tabs = [
+    {% set nav_tabs = [
       ('overview', '📋', 'Overview'),
       ('moodboard', '🎨', 'Moodboard'),
       ('quote', '💰', 'Quote'),
@@ -40,9 +40,9 @@
       ('payments', '💸', 'Payments'),
       ('log', '📝', 'Event Log'),
     ] %}
-    {% for t_id, t_icon, t_label in tabs %}
+    {% for t_id, t_icon, t_label in nav_tabs %}
     <a href="{{ url_for('events.detail', event_id=event.id, tab=t_id) }}"
-       class="tab-btn {{ 'active' if tab == t_id }}">
+       class="tab-btn {{ 'active' if tab == t_id or (not tab and t_id == 'overview') }}">
       {{ t_icon }} {{ t_label }}
     </a>
     {% endfor %}
@@ -69,7 +69,6 @@
         {{ drow('📅', 'Date', event.event_date|dateformat) }}
         {{ drow('🏠', 'Venue', event.venue_name) }}
         {{ drow('🎩', 'Type', event.event_type|title) }}
-        {{ drow('📦', 'Package', event.package_name) }}
         {{ drow('🎙', 'Coordinator', event.coordinator.name if event.coordinator else None) }}
       </div>
     </div>
@@ -84,7 +83,7 @@
         </div>
         {% if quote %}
         <div class="d-flex justify-content-between mb-2" style="font-size:.85rem; padding: 4px 8px; background: #f8f9fa; border-radius: 4px;">
-          <span style="color:#8896A5;">50% Downpayment</span>
+          <span style="color:#8896A5;">50% Downpayment Status</span>
           <span style="font-weight:600; color: {{ '#48BB78' if event.downpayment_status == 'Cleared' else '#C9A84C' }};">
             {{ event.downpayment_status|peso if event.downpayment_status != 'Cleared' else 'Cleared ✓' }}
           </span>
@@ -95,7 +94,7 @@
           <strong style="color:#48BB78;">{{ event.total_paid|peso }}</strong>
         </div>
         <hr class="divider" />
-        <div class="d-flex justify-content-between" style="font-size:1rem;">
+        <div class="d-flex justify-content-between">
           <span style="font-weight:700;">Remaining Balance</span>
           <strong style="color:{{ '#F56565' if event.balance_due > 0 else '#48BB78' }}; font-size:1.1rem;">
             {% if not quote %} ₱0.00 {% elif event.balance_due > 0 %} {{ event.balance_due|peso }} {% else %} FULLY PAID ✓ {% endif %}
@@ -107,73 +106,118 @@
 
   <div class="col-lg-8">
     <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon blue">📌</div><div><div class="kpi-value">{{ event.tasks.count() }}</div><div class="kpi-label">Tasks</div></div></div></div>
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon green">✅</div><div><div class="kpi-value">{{ event.checklist_items.count() }}</div><div class="kpi-label">Checklist</div></div></div></div>
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon gold">🎨</div><div><div class="kpi-value">{{ event.moodboard_pegs.count() }}</div><div class="kpi-label">Pegs</div></div></div></div>
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon purple">📝</div><div><div class="kpi-value">{{ event.event_logs.count() }}</div><div class="kpi-label">Log Entries</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-value">{{ event.tasks.count() }}</div><div class="kpi-label">Tasks</div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon green">✅</div><div class="kpi-value">{{ event.checklist_items.count() }}</div><div class="kpi-label">Checklist</div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon gold">🎨</div><div class="kpi-value">{{ event.moodboard_pegs.count() }}</div><div class="kpi-label">Pegs</div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon purple">📝</div><div class="kpi-value">{{ event.event_logs.count() }}</div><div class="kpi-label">Logs</div></div></div>
     </div>
   </div>
 </div>
 
 {# =================== 🎨 MOODBOARD =================== #}
 {% elif tab == 'moodboard' %}
-<div class="d-flex justify-content-between mb-3"><h5>🎨 Moodboard</h5></div>
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5>🎨 Moodboard & Inspiration</h5>
+  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPeg">➕ Add Peg</button>
+</div>
+
+<div class="collapse mb-4" id="addPeg">
+  <div class="me-card me-card-body">
+    <form method="POST" action="{{ url_for('events.add_peg', event_id=event.id) }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="row g-3">
+            <div class="col-md-6"><label>Title</label><input type="text" name="title" class="form-control" /></div>
+            <div class="col-md-6"><label>Upload Image</label><input type="file" name="peg_image" class="form-control" /></div>
+            <div class="col-12"><button type="submit" class="btn-gold">Upload Peg</button></div>
+        </div>
+    </form>
+  </div>
+</div>
+
 <div class="moodboard-grid">
   {% for peg in event.moodboard_pegs.all() %}
-  <div class="peg-card"><img src="{{ peg.image_url }}" alt="peg" onerror="this.src='/static/img/no-image.svg'" /></div>
-  {% else %}<p class="text-muted">No pegs yet.</p>{% endfor %}
+  <div class="peg-card"><img src="{{ peg.image_url }}" onerror="this.src='/static/img/no-image.svg'" /></div>
+  {% else %}<p class="text-muted">No pegs added yet.</p>{% endfor %}
 </div>
 
 {# =================== 💰 QUOTE =================== #}
 {% elif tab == 'quote' %}
-<div class="d-flex justify-content-between mb-3"><h5>💰 Quote</h5></div>
+<div class="d-flex justify-content-between mb-3">
+  <h5>💰 Quotation Workspace</h5>
+  <a href="{{ url_for('quotes.new_quote', event_id=event.id) }}" class="btn-gold">➕ Create New Revision</a>
+</div>
 {% set quote = event.active_quote %}
 {% if quote %}
-<table class="me-table">
-  {% for item in quote.items %}<tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>{% endfor %}
-</table>
-{% else %}<p>No quote yet.</p>{% endif %}
+  <div class="me-card me-card-body p-0">
+    <table class="me-table">
+        <thead><tr><th>Item</th><th class="text-end">Total</th></tr></thead>
+        <tbody>
+        {% for item in quote.items %}
+          <tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+  </div>
+{% else %}<p class="text-center py-5">No quote generated for this event.</p>{% endif %}
 
 {# =================== ✅ CHECKLIST =================== #}
 {% elif tab == 'checklist' %}
-<h5 class="mb-3">✅ Checklist</h5>
-{% for item in event.checklist_items.all() %}<div class="checklist-item">{{ item.title }}</div>{% endfor %}
+<div class="d-flex justify-content-between mb-3">
+    <h5>✅ Planning Checklist</h5>
+    <button class="btn-gold">➕ Add Task</button>
+</div>
+{% for item in event.checklist_items.all() %}
+  <div class="checklist-item px-3 py-2 mb-1" style="background:#fff; border-radius:8px;">{{ item.title }}</div>
+{% else %}<p class="text-muted">Checklist is empty.</p>{% endfor %}
 
 {# =================== 📌 TASKS =================== #}
 {% elif tab == 'tasks' %}
-<h5 class="mb-3">📌 Tasks</h5>
-<table class="me-table">
-  {% for t in event.tasks.all() %}<tr><td>{{ t.title }}</td><td>{{ 'Done' if t.is_done else 'Pending' }}</td></tr>{% endfor %}
+<div class="d-flex justify-content-between mb-3">
+    <h5>📌 Crew Tasks</h5>
+    <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addTask">➕ Assign Task</button>
+</div>
+<table class="me-table" style="background:#fff;">
+  {% for t in event.tasks.all() %}
+    <tr><td>{{ t.title }}</td><td><span class="badge bg-secondary">{{ 'Done' if t.is_done else 'Pending' }}</span></td></tr>
+  {% else %}<tr><td class="py-4 text-center">No tasks assigned to crew.</td></tr>{% endfor %}
 </table>
-
-{# =================== 📦 INVENTORY =================== #}
-{% elif tab == 'inventory' %}
-<h5 class="mb-3">📦 Inventory Reservations</h5>
-<p class="text-muted">Inventory tracking for this event workspace.</p>
-
-{# =================== 🤝 SUPPLIERS =================== #}
-{% elif tab == 'suppliers' %}
-<h5 class="mb-3">🤝 Suppliers & Purchase Orders</h5>
-<p class="text-muted">Manage supplier contacts and POs for this event.</p>
 
 {# =================== 💸 PAYMENTS =================== #}
 {% elif tab == 'payments' %}
-<h5 class="mb-3">💸 Payment History</h5>
-<table class="me-table">
-  {% for p in event.payments.all() %}<tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td></tr>{% endfor %}
+<div class="d-flex justify-content-between mb-3">
+    <h5>💸 Payment Records</h5>
+    <button class="btn-gold">➕ Record Payment</button>
+</div>
+<table class="me-table" style="background:#fff;">
+  <thead><tr><th>Label</th><th>Amount</th><th>Status</th></tr></thead>
+  <tbody>
+  {% for p in event.payments.all() %}
+    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td>{{ p.status|title }}</td></tr>
+  {% else %}<tr><td colspan="3" class="py-4 text-center">No payments recorded.</td></tr>{% endfor %}
+  </tbody>
 </table>
 
 {# =================== 📝 LOG =================== #}
 {% elif tab == 'log' %}
-<h5 class="mb-3">📝 Event Day Log</h5>
-{% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
-{% for entry in logs %}<div class="mb-2"><strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}</div>{% endfor %}
+<div class="d-flex justify-content-between mb-3">
+    <h5>📝 Event Day Log</h5>
+    <button class="btn-gold">➕ New Entry</button>
+</div>
+<div class="timeline">
+  {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
+  {% for entry in logs %}
+    <div class="p-3 mb-2" style="background:#fff; border-left:4px solid #C9A84C; border-radius:4px;">
+        <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
+    </div>
+  {% else %}<p class="text-muted">Log is empty.</p>{% endfor %}
+</div>
 
-{# =================== 🚨 SAFETY FALLBACK =================== #}
+{# =================== 🚨 FALLBACK =================== #}
 {% else %}
-<div class="text-center py-5">
-    <h4>Tab "{{ tab }}" content coming soon!</h4>
-    <a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold mt-3">Back to Overview</a>
+<div class="text-center py-5" style="background:#fff; border-radius:12px; border:2px dashed #E2E8F0;">
+    <h4>The "{{ tab }}" tab is under construction</h4>
+    <p class="text-muted">We are still wiring up the backend for this module.</p>
+    <a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold">Go to Overview</a>
 </div>
 {% endif %}
 
