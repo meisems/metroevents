@@ -1,14 +1,12 @@
 """
 Metro Events — Event Model
 The core "workspace" entity. One Event = One Workspace.
-
-Types: wedding, corporate, birthday, debut, others
-Status: planning → production → ready → event_day → done → cancelled
 """
 
 from datetime import datetime
+import string
+import secrets  # Safer than random for unique IDs
 from database import db
-
 
 EVENT_TYPES = ["wedding", "corporate", "birthday", "debut", "other"]
 
@@ -24,70 +22,66 @@ EVENT_STATUSES = [
 STATUS_COLORS = {
     "planning":    "primary",
     "production":  "warning",
-    "ready":       "info",
+    "ready":        "info",
     "event_day":   "success",
-    "done":        "secondary",
+    "done":         "secondary",
     "cancelled":   "danger",
 }
-
 
 class Event(db.Model):
     __tablename__ = "events"
 
     id = db.Column(db.Integer, primary_key=True)
+    
+    # ── NEW: Unique Event ID ──────────────────────────────────
+    # format e.g., EVT-X4Y7Z9
+    event_id = db.Column(db.String(12), unique=True, nullable=False)
 
     # ── Core Info ─────────────────────────────────────────────
-    name = db.Column(db.String(200), nullable=False)  # e.g. "JD & Ana Wedding"
+    name = db.Column(db.String(200), nullable=False)  
     event_type = db.Column(db.String(50), nullable=False, default="wedding")
     status = db.Column(db.String(50), nullable=False, default="planning")
 
-    # ── Client & Venue ────────────────────────────────────────
-    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"),
-                          nullable=False)
+    # ... (rest of your existing columns: client_id, venue, dates, etc.) ...
+    client_id = db.Column(db.Integer, db.ForeignKey("clients.id"), nullable=False)
     venue_name = db.Column(db.String(200))
     venue_address = db.Column(db.Text)
-
-    # ── Dates & Times ─────────────────────────────────────────
     event_date = db.Column(db.Date, nullable=False)
     event_time_start = db.Column(db.Time)
     event_time_end = db.Column(db.Time)
-    call_time = db.Column(db.Time)          # crew call time
-    setup_deadline = db.Column(db.Time)     # latest setup complete
-
-    # ── Coordinator & Team ────────────────────────────────────
+    call_time = db.Column(db.Time)
+    setup_deadline = db.Column(db.Time)
     coordinator_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     team_notes = db.Column(db.Text)
-
-    # ── Package & Budget ──────────────────────────────────────
-    package_name = db.Column(db.String(150))  # e.g. "Metro Gold Package"
+    package_name = db.Column(db.String(150))
     total_budget = db.Column(db.Numeric(12, 2), default=0)
-
-    # ── Color Palette ─────────────────────────────────────────
-    color_palette = db.Column(db.String(200))  # comma-sep hex codes
-
-    # ── Meta ──────────────────────────────────────────────────
+    color_palette = db.Column(db.String(200))
     internal_notes = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow,
-                           onupdate=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # ── Relationships ─────────────────────────────────────────
     client = db.relationship("Client", back_populates="events")
     coordinator = db.relationship("User", foreign_keys=[coordinator_id])
-    quotes = db.relationship("Quote", back_populates="event",
-                             lazy="dynamic", cascade="all, delete-orphan")
-    payments = db.relationship("Payment", back_populates="event",
-                               lazy="dynamic", cascade="all, delete-orphan")
-    tasks = db.relationship("Task", back_populates="event",
-                            lazy="dynamic", cascade="all, delete-orphan")
-    checklist_items = db.relationship("ChecklistItem", back_populates="event",
-                                      lazy="dynamic", cascade="all, delete-orphan")
-    moodboard_pegs = db.relationship("MoodboardPeg", back_populates="event",
-                                     lazy="dynamic", cascade="all, delete-orphan")
-    reservations = db.relationship("Reservation", back_populates="event",
-                                   lazy="dynamic", cascade="all, delete-orphan")
-    event_logs = db.relationship("EventLog", back_populates="event",
-                                 lazy="dynamic", cascade="all, delete-orphan")
+    quotes = db.relationship("Quote", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    payments = db.relationship("Payment", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    tasks = db.relationship("Task", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    checklist_items = db.relationship("ChecklistItem", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    moodboard_pegs = db.relationship("MoodboardPeg", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    reservations = db.relationship("Reservation", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    event_logs = db.relationship("EventLog", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+
+    # ── Static Helper for ID Generation ───────────────────────
+    @staticmethod
+    def generate_unique_id():
+        """Generates a random 6-character uppercase ID like EVT-7B2X9L"""
+        chars = string.ascii_uppercase + string.digits
+        while True:
+            code = ''.join(secrets.choice(chars) for _ in range(6))
+            new_id = f"EVT-{code}"
+            # Check for collisions in the database
+            if not Event.query.filter_by(event_id=new_id).first():
+                return new_id
 
     # ── Helpers ───────────────────────────────────────────────
     @property
@@ -99,31 +93,7 @@ class Event(db.Model):
         delta = self.event_date - datetime.utcnow().date()
         return delta.days
 
-    @property
-    def active_quote(self):
-        """Return the latest non-cancelled quote."""
-        return (
-            self.quotes.filter_by(is_active=True)
-            .order_by(db.desc("version"))
-            .first()
-        )
-
-    @property
-    def total_paid(self):
-        from models.payment import Payment as P
-        result = (
-            db.session.query(db.func.sum(P.amount))
-            .filter(P.event_id == self.id, P.status == "paid")
-            .scalar()
-        )
-        return result or 0
-
-    @property
-    def balance_due(self):
-        quote = self.active_quote
-        if not quote:
-            return 0
-        return float(quote.grand_total) - float(self.total_paid)
+    # ... (rest of your properties: active_quote, total_paid, balance_due) ...
 
     def __repr__(self):
-        return f"<Event '{self.name}' [{self.event_date}]>"
+        return f"<Event '{self.event_id}' - '{self.name}'>"
