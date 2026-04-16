@@ -103,16 +103,28 @@ def list_events():
 def new_event():
     if request.method == "POST":
         e = Event()
+        
+        # ── Populate fields from the form ──
         _populate_event(e, request.form)
+        
+        # ── NEW: Generate the unique Event ID ──
+        e.event_id = Event.generate_unique_id()
+        
         db.session.add(e)
         db.session.commit()
-        flash(f"Event '{e.name}' created!", "success")
+        
+        flash(f"Event '{e.name}' created with ID {e.event_id}! ⚡", "success")
         return redirect(url_for("events.detail", event_id=e.id))
+
     clients      = Client.query.order_by(Client.full_name).all()
     coordinators = User.query.filter(User.role.in_(["admin","coordinator"])).all()
-    return render_template("events/form.html", event=None,
-        clients=clients, coordinators=coordinators,
-        types=EVENT_TYPES, statuses=EVENT_STATUSES,
+    
+    return render_template("events/form.html", 
+        event=None,
+        clients=clients, 
+        coordinators=coordinators,
+        types=EVENT_TYPES, 
+        statuses=EVENT_STATUSES
     )
 
 
