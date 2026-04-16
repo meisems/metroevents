@@ -71,10 +71,8 @@ python run.py
 *Navigate to http://127.0.0.1:5000 in your web browser to view the app.*
 
 ```markdown
-## Deployment
+Deployment
 This application includes a `Procfile` and is ready to be deployed to platform-as-a-service providers like Heroku. 
-3. Contributors / License (Standard practice)
-It's always good practice to claim your work!
 ```
 
 ## Contributors
