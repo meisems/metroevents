@@ -109,4 +109,4 @@ with app.app_context():
 
     db.session.commit()
     print("\n🎉 Seed complete! Run: python run.py")
-    print("   Login: admin@metroevents.ph / metro2024")
+    print("   Login: admin@metroevents.ph / admin1234")
