@@ -1,119 +1,288 @@
 {% extends "base.html" %}
-{% block title %}{{ client.full_name }}{% endblock %}
-{% block page_title %}{{ client.full_name }}{% endblock %}
-{% block breadcrumb %}
-  <a href="{{ url_for('clients.list_clients') }}">Clients</a> → {{ client.full_name }}
-{% endblock %}
-{% block topbar_actions %}
-  <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn-outline-gold">✏️ Edit</a>
-  {% if client.next_action %}
-  <form action="{{ url_for('clients.advance_stage', client_id=client.id) }}" method="POST" class="d-inline">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <button type="submit" class="btn-gold">{{ client.next_action }} →</button>
-  </form>
-  {% endif %}
-{% endblock %}
+{% block title %}{{ event.name }}{% endblock %}
 
 {% block content %}
+<div class="me-workspace-header" style="margin:-28px -28px 0;padding:20px 28px 0;">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 pb-2">
+    <div>
+      <div class="me-workspace-title">{{ event.name }}</div>
+      <div class="me-workspace-meta">
+        <span style="color:#C9A84C; font-weight:800; letter-spacing: 1px;">{{ event.event_id }}</span> ·
+        {{ event.event_type|title }} ·
+        {{ event.event_date|dateformat }} ·
+        {{ event.venue_name or 'Venue TBD' }} ·
+        <span class="badge bg-{{ event.status_color }}">{{ event.status|replace('_',' ')|title }}</span>
+        {% if event.days_until >= 0 and event.status not in ['done','cancelled'] %}
+          · <strong style="color:#C9A84C;">{{ event.days_until }} days away</strong>
+        {% endif %}
+      </div>
+    </div>
+    <div class="d-flex gap-2 pb-2">
+      <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">✏️ Edit</a>
+      {% if current_user.is_admin %}
+      <form action="{{ url_for('events.delete_event', event_id=event.id) }}" method="POST" data-confirm="Delete this event permanently?">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-sm btn-outline-danger">🗑</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="me-workspace-tabs">
+    {% set tabs = [
+      ('overview', '📋', 'Overview'),
+      ('moodboard', '🎨', 'Moodboard'),
+      ('quote', '💰', 'Quote'),
+      ('checklist', '✅', 'Checklist'),
+      ('tasks', '📌', 'Tasks'),
+      ('inventory', '📦', 'Inventory'),
+      ('suppliers', '🤝', 'Suppliers'),
+      ('payments', '💸', 'Payments'),
+      ('log', '📝', 'Event Log'),
+    ] %}
+    {% for t_id, t_icon, t_label in tabs %}
+    <a href="{{ url_for('events.detail', event_id=event.id, tab=t_id) }}"
+       class="tab-btn {{ 'active' if tab == t_id }}">
+      {{ t_icon }} {{ t_label }}
+    </a>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="mt-4">
+
+{# =================== OVERVIEW =================== #}
+{% if tab == 'overview' %}
 <div class="row g-4">
-  <!-- Client info -->
   <div class="col-lg-4">
     <div class="me-card mb-4">
+      <div class="me-card-header"><h5>📋 Event Details</h5></div>
       <div class="me-card-body">
-        <div class="text-center mb-3">
-          <div class="me-avatar mx-auto" style="width:64px;height:64px;font-size:1.4rem;">
-            {{ client.full_name[0]|upper }}
-          </div>
-          <div style="font-weight:800;font-size:1.1rem;margin-top:10px;">{{ client.full_name }}</div>
-          <span class="badge bg-{{ client.stage_color }} mt-1">{{ client.stage_label }}</span>
-        </div>
-
-        <hr class="divider" />
-
-        {% macro info_row(icon, label, val) %}
+        {% macro drow(icon, label, val) %}
         <div class="d-flex gap-2 mb-2" style="font-size:.875rem;">
           <span>{{ icon }}</span>
-          <div><span style="color:#8896A5;">{{ label }}:</span> {{ val or '—' }}</div>
+          <div><span style="color:#8896A5;">{{ label }}:</span> <strong>{{ val or '—' }}</strong></div>
         </div>
         {% endmacro %}
-
-        {{ info_row('📧', 'Email', client.email) }}
-        {{ info_row('📱', 'Phone', client.phone) }}
-        {{ info_row('📸', 'Instagram', client.instagram) }}
-        {{ info_row('📍', 'Address', client.address) }}
-        {{ info_row('🔗', 'Referred by', client.referred_by) }}
-        {{ info_row('📅', 'Inquiry Date', client.inquiry_date|dateformat) }}
-        {% if client.ocular_date %}
-        {{ info_row('🏠', 'Ocular', client.ocular_date|dateformat('%b %d, %Y %I:%M %p')) }}
-        {% endif %}
-
-        {% if client.notes %}
-        <hr class="divider" />
-        <div class="section-title">Notes</div>
-        <p style="font-size:.875rem;color:#4A5568;">{{ client.notes }}</p>
+        
+        {{ drow('🆔', 'Event ID', event.event_id) }}
+        {{ drow('👤', 'Client', event.client.full_name) }}
+        {{ drow('📅', 'Date', event.event_date|dateformat) }}
+        {{ drow('🏠', 'Venue', event.venue_name) }}
+        {{ drow('📍', 'Address', event.venue_address) }}
+        {{ drow('🎩', 'Type', event.event_type|title) }}
+        {{ drow('📦', 'Package', event.package_name) }}
+        {{ drow('⏰', 'Call Time', event.call_time.strftime('%I:%M %p') if event.call_time else None) }}
+        {{ drow('🎬', 'Setup Deadline', event.setup_deadline.strftime('%I:%M %p') if event.setup_deadline else None) }}
+        {{ drow('🎙', 'Coordinator', event.coordinator.name if event.coordinator else None) }}
+        
+        {% if event.color_palette %}
+        <div class="mt-2">
+          <span style="color:#8896A5;font-size:.875rem;">🎨 Palette:</span>
+          {% for hex in event.color_palette.split(',') %}
+            <span class="color-swatch" style="background:{{ hex.strip() }}" title="{{ hex.strip() }}"></span>
+          {% endfor %}
+        </div>
         {% endif %}
       </div>
     </div>
 
-    <!-- Pipeline -->
     <div class="me-card">
-      <div class="me-card-header"><h5>🔄 Pipeline</h5></div>
-      <div class="me-card-body p-0">
-        {% for s in stages %}
-        <div style="padding:8px 16px;border-bottom:1px solid #F0F2F7;display:flex;align-items:center;gap:10px;">
-          <div style="width:10px;height:10px;border-radius:50%;background:
-            {{ '#C9A84C' if client.pipeline_stage == s else ('#48BB78' if stages.index(s) < stages.index(client.pipeline_stage) else '#E2E8F0') }};">
-          </div>
-          <span style="font-size:.82rem;{{ 'font-weight:700;color:#1A1A2E;' if client.pipeline_stage == s else 'color:#A0AEC0;' }}">
-            {{ labels[s][0] }}
+      <div class="me-card-header"><h5>💰 Financial Summary</h5></div>
+      <div class="me-card-body">
+        {% set quote = event.active_quote %}
+        
+        <div class="d-flex justify-content-between mb-2" style="font-size:.9rem;">
+          <span style="color:#8896A5;">Grand Total</span>
+          <strong>{{ quote.grand_total|peso if quote else 'No Quote Yet' }}</strong>
+        </div>
+
+        {% if quote %}
+        <div class="d-flex justify-content-between mb-2" style="font-size:.85rem; padding: 4px 8px; background: #f8f9fa; border-radius: 4px;">
+          <span style="color:#8896A5;">50% Downpayment</span>
+          <span style="font-weight:600; color: {{ '#48BB78' if event.downpayment_status == 'Cleared' else '#C9A84C' }};">
+            {{ event.downpayment_status|peso if event.downpayment_status != 'Cleared' else 'Cleared ✓' }}
           </span>
         </div>
-        {% endfor %}
+        {% endif %}
+
+        <div class="d-flex justify-content-between mb-2" style="font-size:.9rem;">
+          <span style="color:#8896A5;">Total Paid</span>
+          <strong style="color:#48BB78;">{{ event.total_paid|peso }}</strong>
+        </div>
+        
+        <hr class="divider" />
+        
+        <div class="d-flex justify-content-between" style="font-size:1rem;">
+          <span style="font-weight:700;">Remaining Balance</span>
+          <strong style="color:{{ '#F56565' if event.balance_due > 0 else '#48BB78' }};font-size:1.1rem;">
+            {% if not quote %}
+                ₱0.00
+            {% elif event.balance_due > 0 %}
+                {{ event.balance_due|peso }}
+            {% else %}
+                FULLY PAID ✓
+            {% endif %}
+          </strong>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Events -->
   <div class="col-lg-8">
-    <div class="me-card">
-      <div class="me-card-header">
-        <h5>🎉 Events ({{ events|length }})</h5>
-        <a href="{{ url_for('events.new_event') }}" class="btn-gold" style="font-size:.8rem;padding:6px 12px;">
-          ➕ New Event
-        </a>
+    <div class="row g-3 mb-4">
+      {% set tasks_total = event.tasks.count() %}
+      {% set tasks_done = event.tasks.filter_by(is_done=True).count() %}
+      {% set checks_total = event.checklist_items.count() %}
+      {% set checks_done = event.checklist_items.filter_by(is_done=True).count() %}
+      <div class="col-6 col-md-3">
+        <div class="kpi-card">
+          <div class="kpi-icon blue">📌</div>
+          <div>
+            <div class="kpi-value" style="font-size:1.4rem;">{{ tasks_done }}/{{ tasks_total }}</div>
+            <div class="kpi-label">Tasks Done</div>
+          </div>
+        </div>
       </div>
-      <div class="me-card-body p-0">
-        {% if events %}
-        <table class="me-table">
-          <thead><tr><th>Event</th><th>Date</th><th>Venue</th><th>Status</th><th>Balance</th></tr></thead>
-          <tbody>
-            {% for e in events %}
-            <tr>
-              <td>
-                <a href="{{ url_for('events.detail', event_id=e.id) }}" style="font-weight:700;color:#1A1A2E;">
-                  {{ e.name }}
-                </a>
-                <div class="text-muted-sm">{{ e.event_type|title }}</div>
-              </td>
-              <td>{{ e.event_date|dateformat }}</td>
-              <td class="text-muted-sm">{{ e.venue_name or '—' }}</td>
-              <td><span class="badge bg-{{ e.status_color }}">{{ e.status|replace('_',' ')|title }}</span></td>
-              <td>
-                {% if e.balance_due > 0 %}
-                <span style="color:#F56565;font-weight:700;">{{ e.balance_due|peso }}</span>
-                {% else %}
-                <span style="color:#48BB78;font-weight:700;">PAID ✓</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        {% else %}
-        <div class="p-4 text-center text-muted-sm">No events yet.</div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card">
+          <div class="kpi-icon green">✅</div>
+          <div>
+            <div class="kpi-value" style="font-size:1.4rem;">{{ checks_done }}/{{ checks_total }}</div>
+            <div class="kpi-label">Checklist</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card">
+          <div class="kpi-icon gold">🎨</div>
+          <div>
+            <div class="kpi-value" style="font-size:1.4rem;">{{ event.moodboard_pegs.count() }}</div>
+            <div class="kpi-label">Pegs</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="kpi-card">
+          <div class="kpi-icon purple">📝</div>
+          <div>
+            <div class="kpi-value" style="font-size:1.4rem;">{{ event.event_logs.count() }}</div>
+            <div class="kpi-label">Log Entries</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if event.team_notes or event.internal_notes %}
+    <div class="me-card">
+      <div class="me-card-header"><h5>📝 Notes</h5></div>
+      <div class="me-card-body">
+        {% if event.team_notes %}
+        <div class="mb-3">
+          <div class="section-title">Team Notes</div>
+          <p style="font-size:.875rem;">{{ event.team_notes }}</p>
+        </div>
+        {% endif %}
+        {% if event.internal_notes %}
+        <div>
+          <div class="section-title">Internal Notes</div>
+          <p style="font-size:.875rem;">{{ event.internal_notes }}</p>
+        </div>
         {% endif %}
       </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{# =================== MOODBOARD =================== #}
+{% elif tab == 'moodboard' %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">🎨 Moodboard & Pegs</h5>
+  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPegForm">➕ Add Peg</button>
+</div>
+
+<div class="collapse mb-4" id="addPegForm">
+  <div class="me-card">
+    <div class="me-card-body">
+      <form method="POST" action="{{ url_for('events.add_peg', event_id=event.id) }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="me-form-label">Title</label>
+            <input type="text" name="title" class="me-form-control" placeholder="e.g. Floral Arch Inspo" />
+          </div>
+          <div class="col-md-4">
+            <label class="me-form-label">Category</label>
+            <select name="category" class="me-form-control">
+              {% for c in peg_categories %}
+              <option value="{{ c }}">{{ c|replace('_',' ')|title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="me-form-label">Source URL (optional)</label>
+            <input type="url" name="source_url" class="me-form-control" placeholder="Pinterest / IG link" />
+          </div>
+          <div class="col-md-6">
+            <label class="me-form-label">Upload Image</label>
+            <input type="file" name="peg_image" class="me-form-control" accept="image/*" />
+          </div>
+          <div class="col-12">
+            <label class="me-form-label">Notes</label>
+            <textarea name="notes" class="me-form-control" rows="2"></textarea>
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn-gold">Add Peg</button>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
-{% endblock %}
+
+<div class="moodboard-grid">
+  {% for peg in event.moodboard_pegs.all() %}
+  <div class="peg-card">
+    <img src="{{ peg.image_url }}" alt="{{ peg.title }}" loading="lazy" onerror="this.src='/static/img/no-image.svg'" />
+    <div class="peg-card-body">
+      <div class="peg-title">{{ peg.title or 'Untitled' }}</div>
+      <div class="peg-cat">{{ peg.category|replace('_',' ')|title }}</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{# =================== QUOTE =================== #}
+{% elif tab == 'quote' %}
+{% set quote = event.active_quote %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0">💰 Quotation & Package</h5>
+  <div class="d-flex gap-2">
+    {% if quote %}
+    <a href="{{ url_for('quotes.quote_pdf', event_id=event.id, quote_id=quote.id) }}"
+       class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">📄 Export PDF</a>
+    {% endif %}
+    <a href="{{ url_for('quotes.new_quote', event_id=event.id) }}" class="btn-gold">
+      {{ '🔄 New Revision' if quote else '➕ Create Quote' }}
+    </a>
+  </div>
+</div>
+
+{% if quote %}
+<div class="me-card mb-3">
+  <div class="me-card-header">
+    <h5>{{ quote.package_name or 'Package Details' }}</h5>
+  </div>
+  <div class="me-card-body p-0">
+    <table class="me-table">
+      <thead>
+        <tr><th>Item</th><th>Qty</th><th class="text-end">Total</th></tr>
+      </thead>
+      <tbody>
+        {% for item in quote.items %}
+        <tr>
+          <td><strong>{{ item.item_name }}</strong></td>
+          <td>{{ item.quantity }} {{ item.unit }}</td>
+          <td class="text-end">{{ item.total_price|peso }}</td>
+        </tr>
