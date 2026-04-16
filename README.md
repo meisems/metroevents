@@ -29,6 +29,7 @@ metroevents/
 ├── seed.py             # Utility to populate the database with initial sample data
 ├── Procfile            # Deployment instructions (e.g., for Heroku)
 └── requirements.txt    # Required Python packages and dependencies
+```
 
 ## Getting Started
 
@@ -37,7 +38,44 @@ Make sure you have Python installed. It is highly recommended to use a virtual e
 
 ### Installation
 
-1. **Clone the repository:**
+### 1. Clone the repository:
    ```bash
    git clone [https://github.com/meisems/metroevents.git](https://github.com/meisems/metroevents.git)
    cd metroevents
+   ```
+### 2. Create and activate a virtual environment:
+
+```Bash
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+```
+
+### 3.Install the dependencies:
+```Bash
+pip install -r requirements.txt
+```
+
+### 4.Initialize the Database:
+## Run the seed script to set up the local SQLite database and populate it with initial sample data.
+```Bash
+python seed.py
+```
+
+### 5.Run the Application:
+```Bash
+python run.py
+```
+*Navigate to http://127.0.0.1:5000 in your web browser to view the app.*
+
+```markdown
+## Deployment
+This application includes a `Procfile` and is ready to be deployed to platform-as-a-service providers like Heroku. 
+3. Contributors / License (Standard practice)
+It's always good practice to claim your work!
+```
+
+## Contributors
+* [@meisems](https://github.com/meisems)
