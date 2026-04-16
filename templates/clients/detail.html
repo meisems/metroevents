@@ -51,8 +51,8 @@
 
 <div class="mt-4">
 
-{# =================== OVERVIEW =================== #}
-{% if tab == 'overview' %}
+{# =================== 📋 OVERVIEW =================== #}
+{% if tab == 'overview' or not tab %}
 <div class="row g-4">
   <div class="col-lg-4">
     <div class="me-card mb-4">
@@ -64,25 +64,13 @@
           <div><span style="color:#8896A5;">{{ label }}:</span> <strong>{{ val or '—' }}</strong></div>
         </div>
         {% endmacro %}
-        
         {{ drow('🆔', 'Event ID', event.event_id) }}
         {{ drow('👤', 'Client', event.client.full_name) }}
         {{ drow('📅', 'Date', event.event_date|dateformat) }}
         {{ drow('🏠', 'Venue', event.venue_name) }}
         {{ drow('🎩', 'Type', event.event_type|title) }}
         {{ drow('📦', 'Package', event.package_name) }}
-        {{ drow('⏰', 'Call Time', event.call_time.strftime('%I:%M %p') if event.call_time else None) }}
-        {{ drow('🎬', 'Setup Deadline', event.setup_deadline.strftime('%I:%M %p') if event.setup_deadline else None) }}
         {{ drow('🎙', 'Coordinator', event.coordinator.name if event.coordinator else None) }}
-        
-        {% if event.color_palette %}
-        <div class="mt-2">
-          <span style="color:#8896A5;font-size:.875rem;">🎨 Palette:</span>
-          {% for hex in event.color_palette.split(',') %}
-            <span class="color-swatch" style="background:{{ hex.strip() }}" title="{{ hex.strip() }}"></span>
-          {% endfor %}
-        </div>
-        {% endif %}
       </div>
     </div>
 
@@ -90,42 +78,27 @@
       <div class="me-card-header"><h5>💰 Financial Summary</h5></div>
       <div class="me-card-body">
         {% set quote = event.active_quote %}
-        
         <div class="d-flex justify-content-between mb-2" style="font-size:.9rem;">
           <span style="color:#8896A5;">Grand Total</span>
           <strong>{{ quote.grand_total|peso if quote else 'No Quote Yet' }}</strong>
         </div>
-
         {% if quote %}
         <div class="d-flex justify-content-between mb-2" style="font-size:.85rem; padding: 4px 8px; background: #f8f9fa; border-radius: 4px;">
-          <span style="color:#8896A5;">50% Downpayment Status</span>
+          <span style="color:#8896A5;">50% Downpayment</span>
           <span style="font-weight:600; color: {{ '#48BB78' if event.downpayment_status == 'Cleared' else '#C9A84C' }};">
-            {% if event.downpayment_status == 'Cleared' %}
-                Cleared ✓
-            {% else %}
-                Missing {{ event.downpayment_status|peso }}
-            {% endif %}
+            {{ event.downpayment_status|peso if event.downpayment_status != 'Cleared' else 'Cleared ✓' }}
           </span>
         </div>
         {% endif %}
-
         <div class="d-flex justify-content-between mb-2" style="font-size:.9rem;">
           <span style="color:#8896A5;">Total Paid</span>
           <strong style="color:#48BB78;">{{ event.total_paid|peso }}</strong>
         </div>
-        
         <hr class="divider" />
-        
         <div class="d-flex justify-content-between" style="font-size:1rem;">
           <span style="font-weight:700;">Remaining Balance</span>
           <strong style="color:{{ '#F56565' if event.balance_due > 0 else '#48BB78' }}; font-size:1.1rem;">
-            {% if not quote %}
-                ₱0.00
-            {% elif event.balance_due > 0 %}
-                {{ event.balance_due|peso }}
-            {% else %}
-                FULLY PAID ✓
-            {% endif %}
+            {% if not quote %} ₱0.00 {% elif event.balance_due > 0 %} {{ event.balance_due|peso }} {% else %} FULLY PAID ✓ {% endif %}
           </strong>
         </div>
       </div>
@@ -134,216 +107,75 @@
 
   <div class="col-lg-8">
     <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon blue">📌</div>
-          <div>
-            <div class="kpi-value">{{ event.tasks.filter_by(is_done=True).count() }}/{{ event.tasks.count() }}</div>
-            <div class="kpi-label">Tasks Done</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon green">✅</div>
-          <div>
-            <div class="kpi-value">{{ event.checklist_items.filter_by(is_done=True).count() }}/{{ event.checklist_items.count() }}</div>
-            <div class="kpi-label">Checklist</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon gold">🎨</div>
-          <div>
-            <div class="kpi-value">{{ event.moodboard_pegs.count() }}</div>
-            <div class="kpi-label">Pegs</div>
-          </div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="kpi-card">
-          <div class="kpi-icon purple">📝</div>
-          <div>
-            <div class="kpi-value">{{ event.event_logs.count() }}</div>
-            <div class="kpi-label">Log Entries</div>
-          </div>
-        </div>
-      </div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon blue">📌</div><div><div class="kpi-value">{{ event.tasks.count() }}</div><div class="kpi-label">Tasks</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon green">✅</div><div><div class="kpi-value">{{ event.checklist_items.count() }}</div><div class="kpi-label">Checklist</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon gold">🎨</div><div><div class="kpi-value">{{ event.moodboard_pegs.count() }}</div><div class="kpi-label">Pegs</div></div></div></div>
+      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon purple">📝</div><div><div class="kpi-value">{{ event.event_logs.count() }}</div><div class="kpi-label">Log Entries</div></div></div></div>
     </div>
-
-    {% if event.team_notes or event.internal_notes %}
-    <div class="me-card">
-      <div class="me-card-header"><h5>📝 Notes</h5></div>
-      <div class="me-card-body">
-        {% if event.team_notes %}
-        <div class="mb-3">
-          <div class="section-title">Team Notes</div>
-          <p style="font-size:.875rem;">{{ event.team_notes }}</p>
-        </div>
-        {% endif %}
-        {% if event.internal_notes %}
-        <div>
-          <div class="section-title">Internal Notes</div>
-          <p style="font-size:.875rem;">{{ event.internal_notes }}</p>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-    {% endif %}
   </div>
 </div>
 
-{# =================== MOODBOARD =================== #}
+{# =================== 🎨 MOODBOARD =================== #}
 {% elif tab == 'moodboard' %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">🎨 Moodboard & Pegs</h5>
-  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPegForm">➕ Add Peg</button>
-</div>
-
-<div class="collapse mb-4" id="addPegForm">
-  <div class="me-card">
-    <div class="me-card-body">
-      <form method="POST" action="{{ url_for('events.add_peg', event_id=event.id) }}" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="me-form-label">Title</label>
-            <input type="text" name="title" class="me-form-control" placeholder="e.g. Floral Arch Inspo" />
-          </div>
-          <div class="col-md-4">
-            <label class="me-form-label">Category</label>
-            <select name="category" class="me-form-control">
-              {% for c in peg_categories %}
-              <option value="{{ c }}">{{ c|replace('_',' ')|title }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-6">
-            <label class="me-form-label">Upload Image</label>
-            <input type="file" name="peg_image" class="me-form-control" accept="image/*" />
-          </div>
-          <div class="col-12">
-            <button type="submit" class="btn-gold">Add Peg</button>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
+<div class="d-flex justify-content-between mb-3"><h5>🎨 Moodboard</h5></div>
 <div class="moodboard-grid">
   {% for peg in event.moodboard_pegs.all() %}
-  <div class="peg-card">
-    <img src="{{ peg.image_url }}" alt="{{ peg.title }}" loading="lazy" onerror="this.src='/static/img/no-image.svg'" />
-    <div class="peg-card-body">
-      <div class="peg-title">{{ peg.title or 'Untitled' }}</div>
-      <div class="peg-cat">{{ peg.category|replace('_',' ')|title }}</div>
-    </div>
-  </div>
-  {% endfor %}
+  <div class="peg-card"><img src="{{ peg.image_url }}" alt="peg" onerror="this.src='/static/img/no-image.svg'" /></div>
+  {% else %}<p class="text-muted">No pegs yet.</p>{% endfor %}
 </div>
 
-{# =================== QUOTE =================== #}
+{# =================== 💰 QUOTE =================== #}
 {% elif tab == 'quote' %}
+<div class="d-flex justify-content-between mb-3"><h5>💰 Quote</h5></div>
 {% set quote = event.active_quote %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">💰 Quotation</h5>
-  <div class="d-flex gap-2">
-    {% if quote %}
-    <a href="{{ url_for('quotes.quote_pdf', event_id=event.id, quote_id=quote.id) }}" class="btn-outline-gold">📄 PDF</a>
-    {% endif %}
-    <a href="{{ url_for('quotes.new_quote', event_id=event.id) }}" class="btn-gold">➕ Create Quote</a>
-  </div>
-</div>
-
 {% if quote %}
-<div class="me-card">
-  <div class="me-card-header"><h5>{{ quote.package_name or 'Event Quote' }}</h5></div>
-  <div class="me-card-body p-0">
-    <table class="me-table">
-      <thead><tr><th>Item</th><th>Qty</th><th class="text-end">Total</th></tr></thead>
-      <tbody>
-        {% for item in quote.items %}
-        <tr>
-          <td>{{ item.item_name }}</td>
-          <td>{{ item.quantity }} {{ item.unit }}</td>
-          <td class="text-end">{{ item.total_price|peso }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% else %}
-<div class="text-center py-5 text-muted-sm">No quote created yet. 💰</div>
-{% endif %}
+<table class="me-table">
+  {% for item in quote.items %}<tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>{% endfor %}
+</table>
+{% else %}<p>No quote yet.</p>{% endif %}
 
-{# =================== CHECKLIST =================== #}
+{# =================== ✅ CHECKLIST =================== #}
 {% elif tab == 'checklist' %}
 <h5 class="mb-3">✅ Checklist</h5>
-{% for item in event.checklist_items.all() %}
-<div class="checklist-item {{ 'done' if item.is_done }} px-3">
-  <div class="check-title">{{ item.title }}</div>
-</div>
-{% endfor %}
+{% for item in event.checklist_items.all() %}<div class="checklist-item">{{ item.title }}</div>{% endfor %}
 
-{# =================== TASKS =================== #}
+{# =================== 📌 TASKS =================== #}
 {% elif tab == 'tasks' %}
 <h5 class="mb-3">📌 Tasks</h5>
-<div class="me-card">
-  <div class="me-card-body p-0">
-    <table class="me-table">
-      <thead><tr><th>Task</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for t in event.tasks.all() %}
-        <tr>
-          <td>{{ t.title }}</td>
-          <td><span class="badge bg-{{ 'success' if t.is_done else 'secondary' }}">{{ 'Done' if t.is_done else 'Pending' }}</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+<table class="me-table">
+  {% for t in event.tasks.all() %}<tr><td>{{ t.title }}</td><td>{{ 'Done' if t.is_done else 'Pending' }}</td></tr>{% endfor %}
+</table>
 
-{# =================== PAYMENTS =================== #}
+{# =================== 📦 INVENTORY =================== #}
+{% elif tab == 'inventory' %}
+<h5 class="mb-3">📦 Inventory Reservations</h5>
+<p class="text-muted">Inventory tracking for this event workspace.</p>
+
+{# =================== 🤝 SUPPLIERS =================== #}
+{% elif tab == 'suppliers' %}
+<h5 class="mb-3">🤝 Suppliers & Purchase Orders</h5>
+<p class="text-muted">Manage supplier contacts and POs for this event.</p>
+
+{# =================== 💸 PAYMENTS =================== #}
 {% elif tab == 'payments' %}
-<h5 class="mb-3">💸 Payments</h5>
-<div class="me-card">
-  <div class="me-card-body p-0">
-    <table class="me-table">
-      <thead><tr><th>Label</th><th>Amount</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for p in event.payments.all() %}
-        <tr>
-          <td>{{ p.label }}</td>
-          <td>{{ p.amount|peso }}</td>
-          <td><span class="badge bg-{{ p.status_color }}">{{ p.status|title }}</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
+<h5 class="mb-3">💸 Payment History</h5>
+<table class="me-table">
+  {% for p in event.payments.all() %}<tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td></tr>{% endfor %}
+</table>
 
-{# =================== EVENT LOG =================== #}
+{# =================== 📝 LOG =================== #}
 {% elif tab == 'log' %}
-<h5 class="mb-3">📝 Event Log</h5>
-<div class="timeline">
-  {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
-  {% for entry in logs %}
-  <div class="timeline-item">
-    <div class="timeline-content">
-      <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
-      <div class="text-muted-sm">{{ entry.logged_at.strftime('%I:%M %p') }}</div>
-    </div>
-  </div>
-  {% else %}
-  <div class="text-center py-5 text-muted-sm">No log entries.</div>
-  {% endfor %}
-</div>
+<h5 class="mb-3">📝 Event Day Log</h5>
+{% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
+{% for entry in logs %}<div class="mb-2"><strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}</div>{% endfor %}
 
+{# =================== 🚨 SAFETY FALLBACK =================== #}
+{% else %}
+<div class="text-center py-5">
+    <h4>Tab "{{ tab }}" content coming soon!</h4>
+    <a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold mt-3">Back to Overview</a>
+</div>
 {% endif %}
+
 </div>
 {% endblock %}
