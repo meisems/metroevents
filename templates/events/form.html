@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ 'Edit' if event else 'New' }} Event{% endblock %}
 {% block page_title %}{{ 'Edit' if event else 'New' }} Event{% endblock %}
+
 {% block breadcrumb %}
   <a href="{{ url_for('events.list_events') }}">Events</a> → {{ 'Edit' if event else 'New' }}
 {% endblock %}
@@ -14,8 +15,8 @@
     <div class="me-card-body">
       <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        
         <div class="row g-3">
-
           <div class="col-12">
             <label class="me-form-label">Event Name *</label>
             <input type="text" name="name" class="me-form-control" required placeholder="e.g. JD & Ana Wedding"
@@ -108,11 +109,11 @@
           </div>
 
           <div class="col-md-6">
-            <label class="me-form-label">Color Palette <small class="text-muted">(comma-separated hex, e.g. #FFF, #C9A84C)</small></label>
+            <label class="me-form-label">Color Palette <small class="text-muted">(comma-sep hex, e.g. #FFF, #C9A84C)</small></label>
             <input type="text" id="colorPaletteInput" name="color_palette" class="me-form-control"
                    placeholder="#E8C97A, #1A1A2E, #FFFFFF"
                    value="{{ event.color_palette if event else '' }}" />
-            <div id="colorPalettePreview" class="mt-2"></div>
+            <div id="colorPalettePreview" class="mt-2 d-flex gap-1"></div>
           </div>
 
           <div class="col-md-6">
@@ -139,4 +140,28 @@
     </div>
   </div>
 </div>
+
+<script>
+  // Dynamic Color Palette Previewer
+  const colorInput = document.getElementById('colorPaletteInput');
+  const colorPreview = document.getElementById('colorPalettePreview');
+
+  function updatePreview() {
+    const colors = colorInput.value.split(',').map(c => c.trim()).filter(c => c.startsWith('#'));
+    colorPreview.innerHTML = '';
+    colors.forEach(color => {
+      const swatch = document.createElement('div');
+      swatch.style.width = '24px';
+      swatch.style.height = '24px';
+      swatch.style.borderRadius = '4px';
+      swatch.style.backgroundColor = color;
+      swatch.style.border = '1px solid #ddd';
+      swatch.title = color;
+      colorPreview.appendChild(swatch);
+    });
+  }
+
+  colorInput.addEventListener('input', updatePreview);
+  window.addEventListener('load', updatePreview); // Preview on edit-mode load
+</script>
 {% endblock %}
