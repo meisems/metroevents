@@ -8,23 +8,31 @@
   <a href="{{ url_for('inventory.list_items') }}">Inventory</a> → {{ item.name }}
 {% endblock %}
 
-{% block topbar_actions %}
-<div class="d-flex gap-2">
-  <a href="{{ url_for('inventory.edit_item', item_id=item.id) }}" class="btn-outline-gold">
-    <i class="fas fa-edit me-1"></i> Edit
-  </a>
-
-  <form action="{{ url_for('inventory.delete_item', item_id=item.id) }}" method="POST" 
-        onsubmit="return confirm('Are you sure you want to permanently delete {{ item.name }}? This action cannot be undone.');">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-    <button type="submit" class="btn btn-outline-danger" style="padding: 8px 14px; font-size: 0.82rem;">
-      <i class="fas fa-trash-alt me-1"></i> Delete
-    </button>
-  </form>
-</div>
-{% endblock %}
+{# We are leaving this empty to ensure it doesn't conflict with anything #}
+{% block topbar_actions %}{% endblock %}
 
 {% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white shadow-sm rounded border">
+  <div>
+    <h2 class="mb-0" style="font-weight: 800; color: #1A1A2E;">{{ item.name }}</h2>
+    <span class="text-muted" style="font-size: 0.85rem;">Product Management Workspace</span>
+  </div>
+  
+  <div class="d-flex gap-2">
+    <a href="{{ url_for('inventory.edit_item', item_id=item.id) }}" class="btn-gold" style="text-decoration:none; padding: 10px 20px;">
+      <i class="fas fa-edit me-1"></i> Edit Details
+    </a>
+
+    <form action="{{ url_for('inventory.delete_item', item_id=item.id) }}" method="POST" 
+          onsubmit="return confirm('WARNING: This will permanently remove {{ item.name }} from the inventory. Proceed?');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="btn btn-outline-danger" style="padding: 10px 20px;">
+        <i class="fas fa-trash-alt me-1"></i> Delete Item
+      </button>
+    </form>
+  </div>
+</div>
+
 <div class="row g-4">
   <div class="col-lg-4">
     <div class="me-card mb-4">
@@ -48,7 +56,7 @@
           <div class="col-6">
             <div style="background:#F9F6EF; border-radius:10px; padding:15px; text-align:center; border: 1px solid #eee;">
               <div style="font-size:1.8rem; font-weight:800; color:#1A1A2E;">{{ item.total_qty }}</div>
-              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Stock</div>
+              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase;">Total Stock</div>
             </div>
           </div>
           <div class="col-6">
@@ -56,7 +64,7 @@
               <div style="font-size:1.8rem; font-weight:800; color:{{ '#F56565' if item.available_qty == 0 else '#48BB78' }};">
                 {{ item.available_qty }}
               </div>
-              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Available</div>
+              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase;">Available</div>
             </div>
           </div>
         </div>
@@ -80,11 +88,6 @@
             <strong class="cond-{{ item.condition }}">{{ item.condition|title }}</strong>
           </div>
         </div>
-
-        {% if item.description %}
-        <hr class="divider" />
-        <p style="font-size:.875rem; color:#4A5568; line-height: 1.6;">{{ item.description }}</p>
-        {% endif %}
       </div>
     </div>
 
@@ -123,51 +126,21 @@
                 <th>Date</th>
                 <th>Qty</th>
                 <th>Status</th>
-                <th>Cond Out</th>
-                <th>Cond In</th>
                 <th class="text-end">Actions</th>
               </tr>
             </thead>
             <tbody>
               {% for r in reservations %}
               <tr>
-                <td>
-                  {% if r.event %}
-                  <a href="{{ url_for('events.detail', event_id=r.event.id) }}" style="font-weight:700; color:#1A1A2E; text-decoration: none;">
-                    {{ r.event.name }}
-                  </a>
-                  {% else %}<span class="text-muted">N/A</span>{% endif %}
-                </td>
+                <td>{{ r.event.name if r.event else 'N/A' }}</td>
                 <td>{{ r.event_date|dateformat }}</td>
-                <td><strong>{{ r.quantity }}</strong></td>
-                <td>
-                  <span class="badge {{ 'bg-success' if r.status=='returned' else ('bg-warning text-dark' if r.status=='checked_out' else 'bg-secondary') }}">
-                    {{ r.status|replace('_',' ')|title }}
-                  </span>
-                </td>
-                <td class="text-muted-sm">{{ r.condition_out|title if r.condition_out else '—' }}</td>
-                <td class="text-muted-sm">{{ r.condition_in|title if r.condition_in else '—' }}</td>
+                <td>{{ r.quantity }}</td>
+                <td><span class="badge bg-secondary">{{ r.status|title }}</span></td>
                 <td class="text-end">
-                  {% if r.status == 'reserved' %}
-                  <form action="{{ url_for('inventory.checkout', res_id=r.id) }}" method="POST" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <button class="btn btn-sm btn-outline-warning">Check Out</button>
-                  </form>
-                  {% elif r.status == 'checked_out' %}
-                  <form action="{{ url_for('inventory.return_item', res_id=r.id) }}" method="POST" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <select name="condition" class="me-form-control d-inline p-1" style="width:85px; font-size:.7rem; height: 30px;">
-                      {% for c in conditions %}
-                      <option value="{{ c }}">{{ c|title }}</option>
-                      {% endfor %}
-                    </select>
-                    <button class="btn btn-sm btn-outline-success ms-1">Return</button>
-                  </form>
-                  {% endif %}
-                </td>
+                   </td>
               </tr>
               {% else %}
-              <tr><td colspan="7" class="text-center py-5 text-muted">No reservations found for this item.</td></tr>
+              <tr><td colspan="5" class="text-center py-5 text-muted">No reservations found.</td></tr>
               {% endfor %}
             </tbody>
           </table>
