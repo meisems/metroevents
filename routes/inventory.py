@@ -38,7 +38,9 @@ def list_items():
     search     = request.args.get("q", "").strip()
     page       = request.args.get("page", 1, type=int)
     
+    # Only show items that haven't been "deleted" (is_active=True)
     q = InventoryItem.query.filter_by(is_active=True)
+    
     if cat_filter:
         q = q.filter_by(category=cat_filter)
     if search:
@@ -63,14 +65,18 @@ def new_item():
         
     if request.method == "POST":
         photo_url = save_photo(request.files.get("photo"))
+        
+        # Pulling total_qty once to sync with available_qty initially
+        t_qty = int(request.form.get("total_qty") or 1)
+        
         item = InventoryItem(
             name             = request.form.get("name","").strip(),
             sku              = request.form.get("sku","").strip() or None,
             category         = request.form.get("category","other"),
             description      = request.form.get("description","").strip(),
             dimensions       = request.form.get("dimensions","").strip(),
-            total_qty        = int(request.form.get("total_qty") or 1),
-            available_qty    = int(request.form.get("total_qty") or 1),
+            total_qty        = t_qty,
+            available_qty    = t_qty, # Initially, all units are available
             storage_location = request.form.get("storage_location","").strip(),
             replacement_cost = float(request.form.get("replacement_cost") or 0) or None,
             rental_price     = float(request.form.get("rental_price") or 0) or None,
@@ -111,24 +117,30 @@ def edit_item(item_id):
         return redirect(url_for("inventory.detail", item_id=item_id))
         
     if request.method == "POST":
-        photo_url = save_photo(request.files.get("photo"))
+        old_total = item.total_qty
+        new_total = int(request.form.get("total_qty") or 1)
+        
+        # Adjust available_qty based on the change in total_qty
+        diff = new_total - old_total
+        item.available_qty += diff
         
         item.name             = request.form.get("name","").strip()
         item.sku              = request.form.get("sku","").strip() or None
         item.category         = request.form.get("category","other")
         item.description      = request.form.get("description","").strip()
         item.dimensions       = request.form.get("dimensions","").strip()
-        item.total_qty        = int(request.form.get("total_qty") or 1)
+        item.total_qty        = new_total
         item.storage_location = request.form.get("storage_location","").strip()
         item.replacement_cost = float(request.form.get("replacement_cost") or 0) or None
         item.rental_price     = float(request.form.get("rental_price") or 0) or None
         item.condition        = request.form.get("condition","good")
         
+        photo_url = save_photo(request.files.get("photo"))
         if photo_url:
             item.photo_url = photo_url
             
         db.session.commit()
-        flash(f"Item '{item.name}' updated.", "success")
+        flash(f"Item '{item.name}' updated! ✨", "success")
         return redirect(url_for("inventory.list_items"))
         
     return render_template("inventory/form.html", item=item,
@@ -140,18 +152,19 @@ def edit_item(item_id):
 @inventory_bp.route("/<int:item_id>/delete", methods=["POST"])
 @login_required
 def delete_item(item_id):
+    # Strictly check for admin role for destructive actions
     if not current_user.is_admin:
-        flash("Only admins can delete inventory items.", "danger")
+        flash("Only admins can remove gear from inventory.", "danger")
         return redirect(url_for("inventory.list_items"))
         
     item = InventoryItem.query.get_or_404(item_id)
     
-    # Soft delete: keep the record but hide it from the catalog
+    # Soft delete: sets is_active to False so it's hidden but data stays intact
     item.is_active = False 
     db.session.commit()
     
-    flash(f"Item '{item.name}' removed from active inventory.", "warning")
-    return redirect(url_for("inventory.list_events"))
+    flash(f"'{item.name}' has been removed from active inventory.", "warning")
+    return redirect(url_for("inventory.list_items")) # FIXED: Redirected to items, not events
 
 
 # ─── RESERVATIONS & LOGISTICS ─────────────────────────────────────────────
