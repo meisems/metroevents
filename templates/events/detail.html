@@ -10,7 +10,21 @@
         <span style="color:#C9A84C; font-weight:800; letter-spacing: 1px;">{{ event.event_id }}</span> ·
         {{ event.event_type|title }} ·
         {{ event.event_date|dateformat }} ·
-        <span class="badge bg-{{ event.status_color }}">{{ event.status|replace('_',' ')|title }}</span>
+        
+        <form action="{{ url_for('events.update_status', event_id=event.id) }}" method="POST" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <select name="status" onchange="this.form.submit()" 
+                  class="badge bg-{{ event.status_color }} border-0 text-white" 
+                  style="cursor: pointer; appearance: none; -webkit-appearance: none; padding: 4px 12px; font-weight: 700;">
+            {% for s_opt in statuses %}
+              <option value="{{ s_opt }}" {{ 'selected' if event.status == s_opt else '' }} 
+                      style="color: #000; background: #fff;">
+                {{ s_opt|replace('_', ' ')|title }}
+              </option>
+            {% endfor %}
+          </select>
+        </form>
+
         {% if event.days_until >= 0 and event.status not in ['done','cancelled'] %}
           · <strong style="color:#C9A84C;">{{ event.days_until }} days away</strong>
         {% endif %}
@@ -19,7 +33,7 @@
     <div class="d-flex gap-2 pb-2">
       <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">✏️ Edit</a>
       {% if current_user.is_admin %}
-      <form action="{{ url_for('events.delete_event', event_id=event.id) }}" method="POST" data-confirm="Delete this event permanently?">
+      <form action="{{ url_for('events.delete_event', event_id=event.id) }}" method="POST" onsubmit="return confirm('Permanently delete this workspace?');">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <button type="submit" class="btn btn-sm btn-outline-danger">🗑</button>
       </form>
@@ -28,7 +42,7 @@
   </div>
 
   <div class="me-workspace-tabs">
-    {% set tabs_list = [
+    {% set nav_tabs = [
       ('overview', '📋', 'Overview'),
       ('moodboard', '🎨', 'Moodboard'),
       ('quote', '💰', 'Quote'),
@@ -39,7 +53,7 @@
       ('payments', '💸', 'Payments'),
       ('log', '📝', 'Event Log'),
     ] %}
-    {% for t_id, t_icon, t_label in tabs_list %}
+    {% for t_id, t_icon, t_label in nav_tabs %}
     <a href="{{ url_for('events.detail', event_id=event.id, tab=t_id) }}"
        class="tab-btn {{ 'active' if tab == t_id or (not tab and t_id == 'overview') }}">
       {{ t_icon }} {{ t_label }}
@@ -63,10 +77,10 @@
           <div><span style="color:#8896A5;">{{ label }}:</span> <strong>{{ val or '—' }}</strong></div>
         </div>
         {% endmacro %}
-        {{ drow('🆔', 'Event ID', event.event_id) }}
         {{ drow('👤', 'Client', event.client.full_name) }}
         {{ drow('📅', 'Date', event.event_date|dateformat) }}
         {{ drow('🏠', 'Venue', event.venue_name) }}
+        {{ drow('📍', 'Address', event.venue_address) }}
         {{ drow('🎩', 'Type', event.event_type|title) }}
         {{ drow('🎙', 'Coordinator', event.coordinator.name if event.coordinator else None) }}
       </div>
@@ -78,8 +92,16 @@
         {% set quote = event.active_quote %}
         <div class="d-flex justify-content-between mb-2">
           <span style="color:#8896A5;">Grand Total</span>
-          <strong>{{ quote.grand_total|peso if quote else 'No Quote' }}</strong>
+          <strong>{{ quote.grand_total|peso if quote else 'No Quote Yet' }}</strong>
         </div>
+        {% if quote %}
+        <div class="d-flex justify-content-between mb-2" style="font-size:.85rem; padding: 4px 8px; background: #f8f9fa; border-radius: 4px;">
+          <span style="color:#8896A5;">50% Downpayment Status</span>
+          <span style="font-weight:600; color: {{ '#48BB78' if event.downpayment_status == 'Cleared' else '#C9A84C' }};">
+            {{ event.downpayment_status|peso if event.downpayment_status != 'Cleared' else 'Cleared ✓' }}
+          </span>
+        </div>
+        {% endif %}
         <div class="d-flex justify-content-between mb-2">
           <span style="color:#8896A5;">Total Paid</span>
           <strong style="color:#48BB78;">{{ event.total_paid|peso }}</strong>
@@ -87,17 +109,20 @@
         <hr class="divider" />
         <div class="d-flex justify-content-between">
           <span style="font-weight:700;">Remaining Balance</span>
-          <strong style="color:{{ '#F56565' if event.balance_due > 0 else '#48BB78' }};">
-            {% if not quote %} ₱0.00 {% else %} {{ event.balance_due|peso }} {% endif %}
+          <strong style="color:{{ '#F56565' if event.balance_due > 0 else '#48BB78' }}; font-size:1.1rem;">
+            {% if not quote %} ₱0.00 {% elif event.balance_due > 0 %} {{ event.balance_due|peso }} {% else %} FULLY PAID ✓ {% endif %}
           </strong>
         </div>
       </div>
     </div>
   </div>
+
   <div class="col-lg-8">
-     <div class="row g-3">
-        <div class="col-md-3"><div class="kpi-card"><h5>{{ event.tasks.count() }}</h5><p>Tasks</p></div></div>
-        <div class="col-md-3"><div class="kpi-card"><h5>{{ event.moodboard_pegs.count() }}</h5><p>Pegs</p></div></div>
+     <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.tasks.count() }}</h5><p>Tasks</p></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.checklist_items.count() }}</h5><p>Checklist</p></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.moodboard_pegs.count() }}</h5><p>Pegs</p></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.event_logs.count() }}</h5><p>Log Entries</p></div></div>
      </div>
   </div>
 </div>
@@ -105,13 +130,13 @@
 {# =================== 🎨 MOODBOARD =================== #}
 {% elif tab == 'moodboard' %}
 <div class="d-flex justify-content-between mb-3">
-  <h5>🎨 Moodboard</h5>
+  <h5>🎨 Moodboard & Inspiration</h5>
   <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPeg">➕ Add Peg</button>
 </div>
 <div class="moodboard-grid">
   {% for peg in event.moodboard_pegs.all() %}
-    <img src="{{ peg.image_url }}" style="width:200px; border-radius:12px; margin:5px;">
-  {% else %}<p class="text-muted">No inspiration added yet.</p>{% endfor %}
+    <div class="peg-card"><img src="{{ peg.image_url }}" onerror="this.src='/static/img/no-image.svg'" /></div>
+  {% else %}<p class="text-muted text-center py-5 w-100">No pegs uploaded yet.</p>{% endfor %}
 </div>
 
 {# =================== 💰 QUOTE =================== #}
@@ -122,18 +147,26 @@
 </div>
 {% set quote = event.active_quote %}
 {% if quote %}
-  <table class="me-table">
-    {% for item in quote.items %}
-    <tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>
-    {% endfor %}
-  </table>
-{% else %}<p>Create a quote to see the breakdown.</p>{% endif %}
+  <div class="me-card me-card-body p-0">
+    <table class="me-table">
+        <thead><tr><th>Item</th><th class="text-end">Total</th></tr></thead>
+        <tbody>
+        {% for item in quote.items %}
+          <tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+  </div>
+{% else %}<p class="text-center py-5">No active quote for this workspace.</p>{% endif %}
 
 {# =================== ✅ CHECKLIST =================== #}
 {% elif tab == 'checklist' %}
-<h5 class="mb-3">✅ Checklist</h5>
+<h5 class="mb-3">✅ Event Checklist</h5>
 {% for item in event.checklist_items.all() %}
-  <div class="p-3 mb-2 bg-white rounded shadow-sm">{{ item.title }}</div>
+  <div class="p-3 mb-2 bg-white rounded shadow-sm d-flex justify-content-between">
+      <span>{{ item.title }}</span>
+      <span class="badge {{ 'bg-success' if item.is_done else 'bg-secondary' }}">{{ 'Done' if item.is_done else 'Pending' }}</span>
+  </div>
 {% endfor %}
 
 {# =================== 📌 TASKS =================== #}
@@ -147,25 +180,28 @@
 
 {# =================== 📦 INVENTORY =================== #}
 {% elif tab == 'inventory' %}
-<h5 class="mb-3">📦 Inventory Reservations</h5>
+<h5 class="mb-3">📦 Item Reservations</h5>
 <table class="me-table bg-white">
   <thead><tr><th>Item</th><th>Qty</th><th>Status</th></tr></thead>
   {% for res in event.reservations.all() %}
     <tr><td>{{ res.item.name }}</td><td>{{ res.quantity }}</td><td>{{ res.status }}</td></tr>
-  {% else %}<tr><td colspan="3" class="text-center py-4">No inventory reserved.</td></tr>{% endfor %}
+  {% else %}<tr><td colspan="3" class="text-center py-4">No items reserved.</td></tr>{% endfor %}
 </table>
 
 {# =================== 🤝 SUPPLIERS =================== #}
 {% elif tab == 'suppliers' %}
-<h5 class="mb-3">🤝 Suppliers & POs</h5>
-<p class="text-muted">Manage your purchase orders here.</p>
+<h5 class="mb-3">🤝 Suppliers & Purchase Orders</h5>
+<div class="me-card p-4 text-center">Supplier PO Workspace is ready.</div>
 
 {# =================== 💸 PAYMENTS =================== #}
 {% elif tab == 'payments' %}
-<h5 class="mb-3">💸 Payment History</h5>
+<div class="d-flex justify-content-between mb-3">
+    <h5>💸 Payment History</h5>
+    <button class="btn-gold">➕ Record Payment</button>
+</div>
 <table class="me-table bg-white">
   {% for p in event.payments.all() %}
-    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td>{{ p.status }}</td></tr>
+    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td>{{ p.status|title }}</td></tr>
   {% endfor %}
 </table>
 
@@ -174,17 +210,17 @@
 <h5 class="mb-3">📝 Event Day Log</h5>
 {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
 {% for entry in logs %}
-  <div class="mb-2 p-2" style="border-left:4px solid #C9A84C; background:#fff;">
+  <div class="mb-2 p-3 bg-white" style="border-left:4px solid #C9A84C;">
     <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
   </div>
 {% endfor %}
 
-{# =================== 🚨 SAFETY FALLBACK =================== #}
+{# =================== 🚨 FALLBACK =================== #}
 {% else %}
 <div class="text-center py-5 bg-white rounded">
     <div style="font-size: 3rem;">🔍</div>
     <h4>Tab Error</h4>
-    <p>The system is looking for tab: <strong>"{{ tab }}"</strong> but couldn't find it in the code.</p>
+    <p>The system is looking for tab: <strong>"{{ tab }}"</strong>.</p>
     <a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold mt-3">Back to Overview</a>
 </div>
 {% endif %}
