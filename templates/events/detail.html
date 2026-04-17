@@ -119,8 +119,8 @@
 
   <div class="col-lg-8">
      <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.tasks.count() }}</h5><p>Tasks</p></div></div>
-        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.checklist_items.count() }}</h5><p>Checklist</p></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.tasks.filter_by(is_done=True).count() }}/{{ event.tasks.count() }}</h5><p>Tasks Done</p></div></div>
+        <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.checklist_items.filter_by(is_done=True).count() }}/{{ event.checklist_items.count() }}</h5><p>Checklist</p></div></div>
         <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.moodboard_pegs.count() }}</h5><p>Pegs</p></div></div>
         <div class="col-6 col-md-3"><div class="kpi-card"><h5>{{ event.event_logs.count() }}</h5><p>Log Entries</p></div></div>
      </div>
@@ -131,7 +131,7 @@
 {% elif tab == 'moodboard' %}
 <div class="d-flex justify-content-between mb-3">
   <h5>🎨 Moodboard & Inspiration</h5>
-  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPeg">➕ Add Peg</button>
+  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPegForm">➕ Add Peg</button>
 </div>
 <div class="moodboard-grid">
   {% for peg in event.moodboard_pegs.all() %}
@@ -161,7 +161,9 @@
 
 {# =================== ✅ CHECKLIST =================== #}
 {% elif tab == 'checklist' %}
-<h5 class="mb-3">✅ Event Checklist</h5>
+<div class="d-flex justify-content-between mb-3">
+  <h5 class="mb-0">✅ Event Checklist</h5>
+</div>
 {% for item in event.checklist_items.all() %}
   <div class="p-3 mb-2 bg-white rounded shadow-sm d-flex justify-content-between">
       <span>{{ item.title }}</span>
@@ -171,11 +173,14 @@
 
 {# =================== 📌 TASKS =================== #}
 {% elif tab == 'tasks' %}
-<h5 class="mb-3">📌 Crew Tasks</h5>
+<div class="d-flex justify-content-between mb-3">
+    <h5>📌 Crew Tasks</h5>
+    <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addTaskForm">➕ Assign Task</button>
+</div>
 <table class="me-table bg-white">
   {% for t in event.tasks.all() %}
     <tr><td>{{ t.title }}</td><td>{{ '✅' if t.is_done else '⏳' }}</td></tr>
-  {% endfor %}
+  {% else %}<tr><td colspan="2" class="text-center py-4">No tasks assigned.</td></tr>{% endfor %}
 </table>
 
 {# =================== 📦 INVENTORY =================== #}
@@ -191,29 +196,38 @@
 {# =================== 🤝 SUPPLIERS =================== #}
 {% elif tab == 'suppliers' %}
 <h5 class="mb-3">🤝 Suppliers & Purchase Orders</h5>
-<div class="me-card p-4 text-center">Supplier PO Workspace is ready.</div>
+<div class="me-card p-4 text-center">Supplier PO Workspace is ready. Use the Sidebar for global supplier management.</div>
 
 {# =================== 💸 PAYMENTS =================== #}
 {% elif tab == 'payments' %}
 <div class="d-flex justify-content-between mb-3">
     <h5>💸 Payment History</h5>
-    <button class="btn-gold">➕ Record Payment</button>
+    <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPaymentForm">➕ Record Payment</button>
 </div>
 <table class="me-table bg-white">
+  <thead><tr><th>Label</th><th>Amount</th><th>Status</th></tr></thead>
+  <tbody>
   {% for p in event.payments.all() %}
-    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td>{{ p.status|title }}</td></tr>
-  {% endfor %}
+    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td><span class="badge bg-{{ p.status_color }}">{{ p.status|title }}</span></td></tr>
+  {% else %}<tr><td colspan="3" class="text-center py-4">No payments recorded.</td></tr>{% endfor %}
+  </tbody>
 </table>
 
 {# =================== 📝 LOG =================== #}
 {% elif tab == 'log' %}
-<h5 class="mb-3">📝 Event Day Log</h5>
-{% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
-{% for entry in logs %}
-  <div class="mb-2 p-3 bg-white" style="border-left:4px solid #C9A84C;">
-    <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
-  </div>
-{% endfor %}
+<div class="d-flex justify-content-between mb-3">
+    <h5>📝 Event Day Log</h5>
+    <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addLogForm">➕ New Entry</button>
+</div>
+<div class="timeline">
+  {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
+  {% for entry in logs %}
+    <div class="mb-2 p-3 bg-white" style="border-left:4px solid #C9A84C; border-radius: 4px;">
+      <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
+      <div class="text-muted small">{{ entry.logged_at.strftime('%I:%M %p') }}</div>
+    </div>
+  {% else %}<p class="text-muted text-center py-5">No log entries found.</p>{% endfor %}
+</div>
 
 {# =================== 🚨 FALLBACK =================== #}
 {% else %}
