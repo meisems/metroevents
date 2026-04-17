@@ -2,7 +2,7 @@
 Metro Events — Events Routes
 One Event = One Workspace (tabbed detail view).
 """
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from database import db
 from models.event import Event, EVENT_TYPES, EVENT_STATUSES
@@ -13,17 +13,16 @@ from models.moodboard import MoodboardPeg, PEG_CATEGORIES
 from models.supplier import Supplier, PurchaseOrder
 from datetime import datetime
 import os, uuid
-from flask import current_app
 from werkzeug.utils import secure_filename
 
 events_bp = Blueprint("events", __name__, url_prefix="/events")
 
 ALLOWED = {"png", "jpg", "jpeg", "gif", "pdf", "docx", "xlsx"}
 
+# ─── HELPERS ───────────────────────────────────────────────────────────────
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED
-
 
 def save_upload(file):
     if file and allowed_file(file.filename):
@@ -34,7 +33,6 @@ def save_upload(file):
         file.save(os.path.join(folder, fname))
         return f"/static/uploads/{fname}"
     return None
-
 
 def _populate_event(evt, form):
     evt.name             = form.get("name", "").strip()
@@ -72,7 +70,7 @@ def _populate_event(evt, form):
         evt.client_id = int(client_id)
 
 
-# ─── LIST ──────────────────────────────────────────────────────────────────
+# ─── LIST VIEW ─────────────────────────────────────────────────────────────
 
 @events_bp.route("/")
 @login_required
@@ -89,25 +87,44 @@ def list_events():
         q = q.filter_by(event_type=type_filter)
     if search:
         q = q.filter(Event.name.ilike(f"%{search}%"))
+        
     events = q.order_by(Event.event_date.desc()).paginate(page=page, per_page=20)
+    
     return render_template("events/list.html",
         events=events, statuses=EVENT_STATUSES, types=EVENT_TYPES,
         status_filter=status_filter, type_filter=type_filter, search=search,
     )
 
 
-# ─── NEW ───────────────────────────────────────────────────────────────────
+# ─── QUICK STATUS UPDATE ───────────────────────────────────────────────────
+
+@events_bp.route("/<int:event_id>/update-status", methods=["POST"])
+@login_required
+def update_status(event_id):
+    """Updates the status of an event from a quick-dropdown."""
+    event = Event.query.get_or_404(event_id)
+    new_status = request.form.get("status")
+    
+    if new_status in EVENT_STATUSES:
+        event.status = new_status
+        db.session.commit()
+        flash(f"Status for '{event.name}' updated to {new_status.title()}! ✅", "success")
+    else:
+        flash("Invalid status selected.", "danger")
+    
+    return redirect(request.referrer or url_for("events.list_events"))
+
+
+# ─── CREATE NEW EVENT ──────────────────────────────────────────────────────
 
 @events_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new_event():
     if request.method == "POST":
         e = Event()
-        
-        # ── Populate fields from the form ──
         _populate_event(e, request.form)
         
-        # ── NEW: Generate the unique Event ID ──
+        # Assign the unique ID (e.g., EVT-X4Y7Z9)
         e.event_id = Event.generate_unique_id()
         
         db.session.add(e)
@@ -128,7 +145,7 @@ def new_event():
     )
 
 
-# ─── DETAIL (tabbed workspace) ─────────────────────────────────────────────
+# ─── DETAIL (Tabbed Workspace) ─────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>")
 @login_required
@@ -137,6 +154,7 @@ def detail(event_id):
     tab   = request.args.get("tab", "overview")
     suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.company_name).all()
     all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
+    
     return render_template("events/detail.html",
         event=event, tab=tab,
         peg_categories=PEG_CATEGORIES,
@@ -147,7 +165,7 @@ def detail(event_id):
     )
 
 
-# ─── EDIT ──────────────────────────────────────────────────────────────────
+# ─── EDIT & DELETE ─────────────────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -158,15 +176,13 @@ def edit_event(event_id):
         db.session.commit()
         flash("Event updated.", "success")
         return redirect(url_for("events.detail", event_id=event.id))
+        
     clients      = Client.query.order_by(Client.full_name).all()
     coordinators = User.query.filter(User.role.in_(["admin","coordinator"])).all()
     return render_template("events/form.html", event=event,
         clients=clients, coordinators=coordinators,
         types=EVENT_TYPES, statuses=EVENT_STATUSES,
     )
-
-
-# ─── DELETE ────────────────────────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>/delete", methods=["POST"])
 @login_required
@@ -181,7 +197,7 @@ def delete_event(event_id):
     return redirect(url_for("events.list_events"))
 
 
-# ─── PAYMENTS (sub-resource under event) ──────────────────────────────────
+# ─── PAYMENTS ──────────────────────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>/payments/add", methods=["POST"])
 @login_required
@@ -203,33 +219,22 @@ def add_payment(event_id):
             p.due_date = datetime.strptime(raw_due, "%Y-%m-%d").date()
         except ValueError:
             pass
-    # proof upload
+            
     proof = request.files.get("proof_file")
     url   = save_upload(proof)
     if url:
         p.proof_of_payment_url = url
+        
     if p.status == "paid":
         p.paid_date = datetime.utcnow().date()
+        
     db.session.add(p)
     db.session.commit()
     flash("Payment recorded.", "success")
     return redirect(url_for("events.detail", event_id=event.id, tab="payments"))
 
 
-@events_bp.route("/<int:event_id>/payments/<int:pay_id>/mark_paid", methods=["POST"])
-@login_required
-def mark_payment_paid(event_id, pay_id):
-    p = Payment.query.get_or_404(pay_id)
-    p.mark_paid(
-        method    = request.form.get("method"),
-        reference = request.form.get("reference_number"),
-    )
-    db.session.commit()
-    flash("Payment marked as paid ✅", "success")
-    return redirect(url_for("events.detail", event_id=event_id, tab="payments"))
-
-
-# ─── MOODBOARD pegs ───────────────────────────────────────────────────────
+# ─── MOODBOARD & PEGS ──────────────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>/pegs/add", methods=["POST"])
 @login_required
@@ -237,11 +242,14 @@ def add_peg(event_id):
     event = Event.query.get_or_404(event_id)
     img_file = request.files.get("peg_image")
     img_url  = save_upload(img_file)
+    
     if not img_url:
         img_url = request.form.get("image_url_ext", "").strip()
+        
     if not img_url:
         flash("Please upload an image or provide a URL.", "warning")
         return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
+        
     peg = MoodboardPeg(
         event_id          = event.id,
         title             = request.form.get("title", "").strip(),
@@ -258,27 +266,7 @@ def add_peg(event_id):
     return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
 
 
-@events_bp.route("/<int:event_id>/pegs/<int:peg_id>/approve", methods=["POST"])
-@login_required
-def approve_peg(event_id, peg_id):
-    peg = MoodboardPeg.query.get_or_404(peg_id)
-    peg.approve()
-    db.session.commit()
-    flash("Peg approved ✅", "success")
-    return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
-
-
-@events_bp.route("/<int:event_id>/pegs/<int:peg_id>/delete", methods=["POST"])
-@login_required
-def delete_peg(event_id, peg_id):
-    peg = MoodboardPeg.query.get_or_404(peg_id)
-    db.session.delete(peg)
-    db.session.commit()
-    flash("Peg removed.", "info")
-    return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
-
-
-# ─── SUPPLIER / PO ────────────────────────────────────────────────────────
+# ─── SUPPLIERS & POs ───────────────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>/po/add", methods=["POST"])
 @login_required
@@ -286,6 +274,7 @@ def add_po(event_id):
     event = Event.query.get_or_404(event_id)
     proof = request.files.get("proof_file")
     proof_url = save_upload(proof)
+    
     po = PurchaseOrder(
         supplier_id           = int(request.form.get("supplier_id")),
         event_id              = event.id,
@@ -296,12 +285,14 @@ def add_po(event_id):
         delivery_time_window  = request.form.get("delivery_time_window", "").strip(),
         proof_of_payment_url  = proof_url,
     )
+    
     raw = request.form.get("delivery_date")
     if raw:
         try:
             po.delivery_date = datetime.strptime(raw, "%Y-%m-%d").date()
         except ValueError:
             pass
+            
     db.session.add(po)
     db.session.commit()
     flash("Purchase order added.", "success")
