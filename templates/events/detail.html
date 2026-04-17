@@ -127,45 +127,28 @@
   </div>
 </div>
 
-{# =================== 🎨 MOODBOARD & PEGS =================== #}
+{# =================== 🎨 MOODBOARD =================== #}
 {% elif tab == 'moodboard' %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h5 class="mb-0">🎨 Moodboard & Inspiration</h5>
+  <h5>🎨 Moodboard & Inspiration</h5>
   <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPegForm">➕ Add Peg</button>
 </div>
 
 <div class="collapse mb-4" id="addPegForm">
-  <div class="me-card">
-    <div class="me-card-body">
-      <form method="POST" action="{{ url_for('events.add_peg', event_id=event.id) }}" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="row g-3">
-          <div class="col-md-4">
-            <label class="me-form-label">Title</label>
-            <input type="text" name="title" class="me-form-control" placeholder="e.g., Rustic Arch" required />
-          </div>
-          <div class="col-md-4">
-            <label class="me-form-label">Category</label>
-            <select name="category" class="me-form-control">
-              {% for c in peg_categories %}
-              <option value="{{ c }}">{{ c|replace('_',' ')|title }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="me-form-label">Upload Image</label>
-            <input type="file" name="peg_image" class="me-form-control" accept="image/*" required />
-          </div>
-          <div class="col-12">
-            <label class="me-form-label">Notes</label>
-            <textarea name="notes" class="me-form-control" rows="2" placeholder="Specific details for the team..."></textarea>
-          </div>
-          <div class="col-12 text-end">
-            <button type="submit" class="btn-gold">Upload to Moodboard</button>
-          </div>
+  <div class="me-card me-card-body">
+    <form method="POST" action="{{ url_for('events.add_peg', event_id=event.id) }}" enctype="multipart/form-data">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="row g-3">
+        <div class="col-md-4"><label class="me-form-label">Title</label><input type="text" name="title" class="me-form-control" required></div>
+        <div class="col-md-4"><label class="me-form-label">Category</label>
+          <select name="category" class="me-form-control">
+            {% for c in peg_categories %}<option value="{{ c }}">{{ c|replace('_',' ')|title }}</option>{% endfor %}
+          </select>
         </div>
-      </form>
-    </div>
+        <div class="col-md-4"><label class="me-form-label">Image</label><input type="file" name="peg_image" class="me-form-control" accept="image/*" required></div>
+        <div class="col-12 text-end"><button type="submit" class="btn-gold">Upload Peg</button></div>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -173,53 +156,41 @@
   {% for peg in event.moodboard_pegs.all() %}
   <div class="col-6 col-md-4 col-lg-3">
     <div class="me-card h-100 shadow-sm" style="overflow: hidden; position: relative;">
-      <form action="{{ url_for('events.delete_peg', event_id=event.id, peg_id=peg.id) }}" 
-            method="POST" 
-            style="position: absolute; top: 8px; right: 8px; z-index: 10;"
-            onsubmit="return confirm('Remove this peg?');">
+      <form action="{{ url_for('events.delete_peg', event_id=event.id, peg_id=peg.id) }}" method="POST" style="position: absolute; top: 8px; right: 8px; z-index: 10;">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <button type="submit" class="btn btn-sm btn-danger opacity-75" style="border-radius: 50%; width: 28px; height: 28px; padding: 0;">✕</button>
       </form>
-
-      <div style="height: 200px; background: #f0f0f0;">
-        <img src="{{ peg.image_url }}" 
-             style="width: 100%; height: 100%; object-fit: cover;" 
-             onerror="this.src='/static/img/no-image.svg'" />
-      </div>
-
-      <div class="p-2">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="badge bg-light text-dark" style="font-size: 10px; border: 1px solid #eee;">
-            {{ peg.category|replace('_',' ')|title }}
-          </span>
-        </div>
-        <strong style="font-size: 13px; display: block; color: #1a1a2e;">{{ peg.title or 'Untitled' }}</strong>
-        {% if peg.notes %}
-          <p class="text-muted mb-0 mt-1" style="font-size: 11px; line-height: 1.2;">{{ peg.notes }}</p>
-        {% endif %}
-      </div>
+      <div style="height: 200px;"><img src="{{ peg.image_url }}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='/static/img/no-image.svg'"></div>
+      <div class="p-2"><strong style="font-size: 13px;">{{ peg.title }}</strong></div>
     </div>
   </div>
-  {% else %}
-  <div class="col-12 text-center py-5">
-    <div class="text-muted">
-      <div style="font-size: 2rem;">🎨</div>
-      <p>No pegs uploaded yet. Start adding inspiration!</p>
-    </div>
-  </div>
-  {% endfor %}
+  {% else %}<p class="text-muted text-center py-5 w-100">No pegs uploaded yet.</p>{% endfor %}
 </div>
+
+{# =================== 💰 QUOTE =================== #}
+{% elif tab == 'quote' %}
+{% set quote = event.active_quote %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5>💰 Quotation Workspace</h5>
+  <a href="{{ url_for('quotes.new_quote', event_id=event.id) }}" class="btn-gold">{{ '🔄 New Revision' if quote else '➕ Create Quote' }}</a>
+</div>
+{% if quote %}
+<div class="me-card me-card-body p-0">
+  <table class="me-table">
+    <thead><tr><th>Item</th><th class="text-end">Total</th></tr></thead>
+    <tbody>{% for item in quote.items %}<tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% else %}<p class="text-center py-5">No active quote for this workspace.</p>{% endif %}
 
 {# =================== ✅ CHECKLIST =================== #}
 {% elif tab == 'checklist' %}
-<div class="d-flex justify-content-between mb-3">
-  <h5 class="mb-0">✅ Event Checklist</h5>
-</div>
+<h5 class="mb-3">✅ Event Checklist</h5>
 {% for item in event.checklist_items.all() %}
-  <div class="p-3 mb-2 bg-white rounded shadow-sm d-flex justify-content-between">
-      <span>{{ item.title }}</span>
-      <span class="badge {{ 'bg-success' if item.is_done else 'bg-secondary' }}">{{ 'Done' if item.is_done else 'Pending' }}</span>
-  </div>
+<div class="p-3 mb-2 bg-white rounded shadow-sm d-flex justify-content-between">
+  <span>{{ item.title }}</span>
+  <span class="badge {{ 'bg-success' if item.is_done else 'bg-secondary' }}">{{ 'Done' if item.is_done else 'Pending' }}</span>
+</div>
 {% endfor %}
 
 {# =================== 📌 TASKS =================== #}
@@ -229,9 +200,8 @@
     <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addTaskForm">➕ Assign Task</button>
 </div>
 <table class="me-table bg-white">
-  {% for t in event.tasks.all() %}
-    <tr><td>{{ t.title }}</td><td>{{ '✅' if t.is_done else '⏳' }}</td></tr>
-  {% else %}<tr><td colspan="2" class="text-center py-4">No tasks assigned.</td></tr>{% endfor %}
+  {% for t in event.tasks.all() %}<tr><td>{{ t.title }}</td><td>{{ '✅' if t.is_done else '⏳' }}</td></tr>
+  {% else %}<tr><td class="text-center py-4">No tasks assigned.</td></tr>{% endfor %}
 </table>
 
 {# =================== 📦 INVENTORY =================== #}
@@ -239,15 +209,14 @@
 <h5 class="mb-3">📦 Item Reservations</h5>
 <table class="me-table bg-white">
   <thead><tr><th>Item</th><th>Qty</th><th>Status</th></tr></thead>
-  {% for res in event.reservations.all() %}
-    <tr><td>{{ res.item.name }}</td><td>{{ res.quantity }}</td><td>{{ res.status }}</td></tr>
+  {% for res in event.reservations.all() %}<tr><td>{{ res.item.name }}</td><td>{{ res.quantity }}</td><td>{{ res.status }}</td></tr>
   {% else %}<tr><td colspan="3" class="text-center py-4">No items reserved.</td></tr>{% endfor %}
 </table>
 
 {# =================== 🤝 SUPPLIERS =================== #}
 {% elif tab == 'suppliers' %}
 <h5 class="mb-3">🤝 Suppliers & Purchase Orders</h5>
-<div class="me-card p-4 text-center">Supplier PO Workspace is ready. Use the Sidebar for global supplier management.</div>
+<div class="me-card p-4 text-center">Supplier PO Workspace is ready.</div>
 
 {# =================== 💸 PAYMENTS =================== #}
 {% elif tab == 'payments' %}
@@ -257,11 +226,8 @@
 </div>
 <table class="me-table bg-white">
   <thead><tr><th>Label</th><th>Amount</th><th>Status</th></tr></thead>
-  <tbody>
-  {% for p in event.payments.all() %}
-    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td><span class="badge bg-{{ p.status_color }}">{{ p.status|title }}</span></td></tr>
+  {% for p in event.payments.all() %}<tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td><span class="badge bg-{{ p.status_color }}">{{ p.status|title }}</span></td></tr>
   {% else %}<tr><td colspan="3" class="text-center py-4">No payments recorded.</td></tr>{% endfor %}
-  </tbody>
 </table>
 
 {# =================== 📝 LOG =================== #}
@@ -273,21 +239,16 @@
 <div class="timeline">
   {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
   {% for entry in logs %}
-    <div class="mb-2 p-3 bg-white" style="border-left:4px solid #C9A84C; border-radius: 4px;">
-      <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
-      <div class="text-muted small">{{ entry.logged_at.strftime('%I:%M %p') }}</div>
-    </div>
+  <div class="mb-2 p-3 bg-white" style="border-left:4px solid #C9A84C;">
+    <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
+    <div class="text-muted small">{{ entry.logged_at.strftime('%I:%M %p') }}</div>
+  </div>
   {% else %}<p class="text-muted text-center py-5">No log entries found.</p>{% endfor %}
 </div>
 
 {# =================== 🚨 FALLBACK =================== #}
 {% else %}
-<div class="text-center py-5 bg-white rounded">
-    <div style="font-size: 3rem;">🔍</div>
-    <h4>Tab Error</h4>
-    <p>The system is looking for tab: <strong>"{{ tab }}"</strong>.</p>
-    <a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold mt-3">Back to Overview</a>
-</div>
+<div class="text-center py-5 bg-white rounded"><h4>Tab Error: "{{ tab }}" not found.</h4><a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold mt-3">Back to Overview</a></div>
 {% endif %}
 
 </div>
