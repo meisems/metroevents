@@ -156,7 +156,9 @@ def detail(event_id):
     all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
     
     return render_template("events/detail.html",
-        event=event, tab=tab,
+        event=event, 
+        tab=tab,
+        statuses=EVENT_STATUSES, # <--- ADD THIS LINE
         peg_categories=PEG_CATEGORIES,
         payment_types=PAYMENT_TYPES,
         payment_statuses=PAYMENT_STATUSES,
