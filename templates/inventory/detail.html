@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}{{ item.name }}{% endblock %}
+
+{% block title %}{{ item.name }} — Inventory{% endblock %}
+
 {% block page_title %}{{ item.name }}{% endblock %}
 
 {% block breadcrumb %}
@@ -9,14 +11,14 @@
 {% block topbar_actions %}
 <div class="d-flex gap-2">
   <a href="{{ url_for('inventory.edit_item', item_id=item.id) }}" class="btn-outline-gold">
-    ✏️ Edit
+    <i class="fas fa-edit me-1"></i> Edit
   </a>
 
   <form action="{{ url_for('inventory.delete_item', item_id=item.id) }}" method="POST" 
-        onsubmit="return confirm('Permanently remove {{ item.name }}?');">
+        onsubmit="return confirm('Are you sure you want to permanently delete {{ item.name }}? This action cannot be undone.');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-outline-danger" style="padding: 8px 14px; font-size: 0.82rem;">
-      🗑 Delete
+      <i class="fas fa-trash-alt me-1"></i> Delete
     </button>
   </form>
 </div>
@@ -28,47 +30,51 @@
     <div class="me-card mb-4">
       {% if item.photo_url %}
       <img src="{{ item.photo_url }}" alt="{{ item.name }}"
-           style="width:100%; height:200px; object-fit:cover; border-radius: 12px 12px 0 0;"
-           onerror="this.style.display='none'" />
+           style="width:100%; height:220px; object-fit:cover; border-radius: 12px 12px 0 0;"
+           onerror="this.src='/static/img/no-image.svg'" />
+      {% else %}
+      <div style="height:150px; background: linear-gradient(135deg,#1A1A2E,#0F3460); display:flex; align-items:center; justify-content:center; font-size:3rem; border-radius: 12px 12px 0 0;">
+        📦
+      </div>
       {% endif %}
       
       <div class="me-card-body">
-        <h5 class="mb-1" style="font-weight: 700;">{{ item.name }}</h5>
+        <h5 class="mb-1" style="font-weight: 800;">{{ item.name }}</h5>
         <div class="text-muted-sm mb-3">
-          {{ item.category|title }} {% if item.sku %}· SKU: {{ item.sku }}{% endif %}
+          {{ item.category|title }} {% if item.sku %}· <span class="badge bg-light text-dark border">SKU: {{ item.sku }}</span>{% endif %}
         </div>
 
-        <div class="row g-2 mb-3">
+        <div class="row g-2 mb-4">
           <div class="col-6">
-            <div style="background:#F9F6EF; border-radius:8px; padding:12px; text-align:center; border: 1px solid #eee;">
-              <div style="font-size:1.6rem; font-weight:800; color:#1A1A2E;">{{ item.total_qty }}</div>
-              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase;">Total Qty</div>
+            <div style="background:#F9F6EF; border-radius:10px; padding:15px; text-align:center; border: 1px solid #eee;">
+              <div style="font-size:1.8rem; font-weight:800; color:#1A1A2E;">{{ item.total_qty }}</div>
+              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Stock</div>
             </div>
           </div>
           <div class="col-6">
-            <div style="background:{{ '#FFF5F5' if item.available_qty == 0 else '#F0FFF4' }}; border-radius:8px; padding:12px; text-align:center; border: 1px solid {{ '#FED7D7' if item.available_qty == 0 else '#C6F6D5' }};">
-              <div style="font-size:1.6rem; font-weight:800; color:{{ '#F56565' if item.available_qty == 0 else '#48BB78' }};">
+            <div style="background:{{ '#FFF5F5' if item.available_qty == 0 else '#F0FFF4' }}; border-radius:10px; padding:15px; text-align:center; border: 1px solid {{ '#FED7D7' if item.available_qty == 0 else '#C6F6D5' }};">
+              <div style="font-size:1.8rem; font-weight:800; color:{{ '#F56565' if item.available_qty == 0 else '#48BB78' }};">
                 {{ item.available_qty }}
               </div>
-              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase;">Available</div>
+              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Available</div>
             </div>
           </div>
         </div>
 
         {% macro irow(icon, label, val) %}
         <div class="d-flex gap-2 mb-2" style="font-size:.875rem;">
-          <span>{{ icon }}</span>
+          <span style="width: 20px; text-align: center;">{{ icon }}</span>
           <div><span style="color:#8896A5;">{{ label }}:</span> <strong>{{ val or '—' }}</strong></div>
         </div>
         {% endmacro %}
 
         {{ irow('📐', 'Dimensions', item.dimensions) }}
         {{ irow('📍', 'Storage', item.storage_location) }}
-        {{ irow('💰', 'Replacement Cost', item.replacement_cost|peso if item.replacement_cost else None) }}
-        {{ irow('💵', 'Rental Price', item.rental_price|peso if item.rental_price else None) }}
+        {{ irow('💰', 'Replacement', item.replacement_cost|peso if item.replacement_cost else None) }}
+        {{ irow('💵', 'Rental Rate', item.rental_price|peso if item.rental_price else None) }}
         
         <div class="d-flex gap-2 mb-2" style="font-size:.875rem;">
-          <span>🔍</span>
+          <span style="width: 20px; text-align: center;">🔍</span>
           <div>
             <span style="color:#8896A5;">Condition:</span>
             <strong class="cond-{{ item.condition }}">{{ item.condition|title }}</strong>
@@ -77,7 +83,7 @@
 
         {% if item.description %}
         <hr class="divider" />
-        <p style="font-size:.875rem; color:#4A5568;">{{ item.description }}</p>
+        <p style="font-size:.875rem; color:#4A5568; line-height: 1.6;">{{ item.description }}</p>
         {% endif %}
       </div>
     </div>
@@ -88,18 +94,18 @@
         <form method="POST" action="{{ url_for('inventory.reserve', item_id=item.id) }}">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
           <div class="mb-3">
-            <label class="me-form-label">Event Date *</label>
+            <label class="me-form-label">Event Date</label>
             <input type="date" name="event_date" class="me-form-control" required />
           </div>
           <div class="mb-3">
-            <label class="me-form-label">Quantity *</label>
-            <input type="number" name="quantity" class="me-form-control" value="1" min="1" required />
+            <label class="me-form-label">Quantity</label>
+            <input type="number" name="quantity" class="me-form-control" value="1" min="1" max="{{ item.total_qty }}" required />
           </div>
           <div class="mb-3">
-            <label class="me-form-label">Database Event ID *</label>
+            <label class="me-form-label">Event Database ID</label>
             <input type="number" name="event_id" class="me-form-control" placeholder="e.g. 1" required />
           </div>
-          <button type="submit" class="btn-gold w-100 justify-content-center">Reserve</button>
+          <button type="submit" class="btn-gold w-100 justify-content-center">Confirm Reservation</button>
         </form>
       </div>
     </div>
@@ -109,54 +115,63 @@
     <div class="me-card">
       <div class="me-card-header"><h5>📋 Reservation History</h5></div>
       <div class="me-card-body p-0">
-        <table class="me-table mb-0">
-          <thead>
-            <tr><th>Event</th><th>Date</th><th>Qty</th><th>Status</th><th>Cond Out</th><th>Cond In</th><th class="text-end">Actions</th></tr>
-          </thead>
-          <tbody>
-            {% for r in reservations %}
-            <tr>
-              <td>
-                {% if r.event %}
-                <a href="{{ url_for('events.detail', event_id=r.event.id) }}" style="font-weight:600; color:#1A1A2E;">
-                  {{ r.event.name }}
-                </a>
-                {% else %}—{% endif %}
-              </td>
-              <td>{{ r.event_date|dateformat }}</td>
-              <td><strong>{{ r.quantity }}</strong></td>
-              <td>
-                <span class="badge {{ 'bg-success' if r.status=='returned' else ('bg-warning text-dark' if r.status=='checked_out' else 'bg-secondary') }}">
-                  {{ r.status|replace('_',' ')|title }}
-                </span>
-              </td>
-              <td class="text-muted-sm cond-{{ r.condition_out or '' }}">{{ r.condition_out|title if r.condition_out else '—' }}</td>
-              <td class="text-muted-sm cond-{{ r.condition_in or '' }}">{{ r.condition_in|title if r.condition_in else '—' }}</td>
-              <td class="text-end">
-                {% if r.status == 'reserved' %}
-                <form action="{{ url_for('inventory.checkout', res_id=r.id) }}" method="POST" class="d-inline">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <input type="hidden" name="condition" value="good" />
-                  <button class="btn btn-sm btn-outline-warning">Check Out</button>
-                </form>
-                {% elif r.status == 'checked_out' %}
-                <form action="{{ url_for('inventory.return_item', res_id=r.id) }}" method="POST" class="d-inline">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                  <select name="condition" class="me-form-control d-inline p-1" style="width:80px; font-size:.7rem; height: auto;">
-                    {% for c in conditions %}
-                    <option value="{{ c }}">{{ c|title }}</option>
-                    {% endfor %}
-                  </select>
-                  <button class="btn btn-sm btn-outline-success ms-1">Return</button>
-                </form>
-                {% endif %}
-              </td>
-            </tr>
-            {% else %}
-            <tr><td colspan="7" class="text-center py-5 text-muted">No reservations yet.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="me-table mb-0">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Date</th>
+                <th>Qty</th>
+                <th>Status</th>
+                <th>Cond Out</th>
+                <th>Cond In</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in reservations %}
+              <tr>
+                <td>
+                  {% if r.event %}
+                  <a href="{{ url_for('events.detail', event_id=r.event.id) }}" style="font-weight:700; color:#1A1A2E; text-decoration: none;">
+                    {{ r.event.name }}
+                  </a>
+                  {% else %}<span class="text-muted">N/A</span>{% endif %}
+                </td>
+                <td>{{ r.event_date|dateformat }}</td>
+                <td><strong>{{ r.quantity }}</strong></td>
+                <td>
+                  <span class="badge {{ 'bg-success' if r.status=='returned' else ('bg-warning text-dark' if r.status=='checked_out' else 'bg-secondary') }}">
+                    {{ r.status|replace('_',' ')|title }}
+                  </span>
+                </td>
+                <td class="text-muted-sm">{{ r.condition_out|title if r.condition_out else '—' }}</td>
+                <td class="text-muted-sm">{{ r.condition_in|title if r.condition_in else '—' }}</td>
+                <td class="text-end">
+                  {% if r.status == 'reserved' %}
+                  <form action="{{ url_for('inventory.checkout', res_id=r.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button class="btn btn-sm btn-outline-warning">Check Out</button>
+                  </form>
+                  {% elif r.status == 'checked_out' %}
+                  <form action="{{ url_for('inventory.return_item', res_id=r.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <select name="condition" class="me-form-control d-inline p-1" style="width:85px; font-size:.7rem; height: 30px;">
+                      {% for c in conditions %}
+                      <option value="{{ c }}">{{ c|title }}</option>
+                      {% endfor %}
+                    </select>
+                    <button class="btn btn-sm btn-outline-success ms-1">Return</button>
+                  </form>
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" class="text-center py-5 text-muted">No reservations found for this item.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
