@@ -12,15 +12,13 @@
     ✏️ Edit
   </a>
 
-  {% if current_user.is_admin %}
   <form action="{{ url_for('inventory.delete_item', item_id=item.id) }}" method="POST" 
-        onsubmit="return confirm('Permanently remove {{ item.name }} from inventory? This cannot be undone.');">
+        onsubmit="return confirm('Permanently remove {{ item.name }}?');">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
     <button type="submit" class="btn btn-outline-danger" style="padding: 8px 14px; font-size: 0.82rem;">
       🗑 Delete
     </button>
   </form>
-  {% endif %}
 </div>
 {% endblock %}
 
@@ -44,7 +42,7 @@
           <div class="col-6">
             <div style="background:#F9F6EF; border-radius:8px; padding:12px; text-align:center; border: 1px solid #eee;">
               <div style="font-size:1.6rem; font-weight:800; color:#1A1A2E;">{{ item.total_qty }}</div>
-              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Qty</div>
+              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase;">Total Qty</div>
             </div>
           </div>
           <div class="col-6">
@@ -52,7 +50,7 @@
               <div style="font-size:1.6rem; font-weight:800; color:{{ '#F56565' if item.available_qty == 0 else '#48BB78' }};">
                 {{ item.available_qty }}
               </div>
-              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Available</div>
+              <div class="text-muted-sm" style="font-size: 0.7rem; text-transform: uppercase;">Available</div>
             </div>
           </div>
         </div>
@@ -79,7 +77,7 @@
 
         {% if item.description %}
         <hr class="divider" />
-        <p style="font-size:.875rem; color:#4A5568; line-height: 1.5;">{{ item.description }}</p>
+        <p style="font-size:.875rem; color:#4A5568;">{{ item.description }}</p>
         {% endif %}
       </div>
     </div>
@@ -95,14 +93,13 @@
           </div>
           <div class="mb-3">
             <label class="me-form-label">Quantity *</label>
-            <input type="number" name="quantity" class="me-form-control" value="1" min="1" max="{{ item.total_qty }}" required />
+            <input type="number" name="quantity" class="me-form-control" value="1" min="1" required />
           </div>
           <div class="mb-3">
             <label class="me-form-label">Database Event ID *</label>
-            <input type="number" name="event_id" class="me-form-control" placeholder="e.g. 102" required />
-            <small class="text-muted" style="font-size: 0.7rem;">Enter the ID from the Event detail URL.</small>
+            <input type="number" name="event_id" class="me-form-control" placeholder="e.g. 1" required />
           </div>
-          <button type="submit" class="btn-gold w-100 justify-content-center">Confirm Reservation</button>
+          <button type="submit" class="btn-gold w-100 justify-content-center">Reserve</button>
         </form>
       </div>
     </div>
@@ -112,64 +109,54 @@
     <div class="me-card">
       <div class="me-card-header"><h5>📋 Reservation History</h5></div>
       <div class="me-card-body p-0">
-        <div class="table-responsive">
-          <table class="me-table mb-0">
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Date</th>
-                <th>Qty</th>
-                <th>Status</th>
-                <th>Cond Out</th>
-                <th>Cond In</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for r in reservations %}
-              <tr>
-                <td>
-                  {% if r.event %}
-                  <a href="{{ url_for('events.detail', event_id=r.event.id, tab='inventory') }}" style="font-weight:600; color:#1A1A2E;">
-                    {{ r.event.name }}
-                  </a>
-                  {% else %}<span class="text-muted">Orphan Record</span>{% endif %}
-                </td>
-                <td>{{ r.event_date|dateformat }}</td>
-                <td><strong>{{ r.quantity }}</strong></td>
-                <td>
-                  <span class="badge {{ 'bg-success' if r.status=='returned' else ('bg-warning text-dark' if r.status=='checked_out' else 'bg-secondary') }}">
-                    {{ r.status|replace('_',' ')|title }}
-                  </span>
-                </td>
-                <td class="text-muted-sm cond-{{ r.condition_out or '' }}">{{ r.condition_out|title if r.condition_out else '—' }}</td>
-                <td class="text-muted-sm cond-{{ r.condition_in or '' }}">{{ r.condition_in|title if r.condition_in else '—' }}</td>
-                <td class="text-end">
-                  {% if r.status == 'reserved' %}
-                  <form action="{{ url_for('inventory.checkout', res_id=r.id) }}" method="POST" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <input type="hidden" name="condition" value="{{ item.condition }}" />
-                    <button class="btn btn-sm btn-outline-warning">Check Out</button>
-                  </form>
-                  {% elif r.status == 'checked_out' %}
-                  <form action="{{ url_for('inventory.return_item', res_id=r.id) }}" method="POST" class="d-inline">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                    <select name="condition" class="me-form-control d-inline p-1" style="width:85px; font-size:.7rem; height: auto;">
-                      {% for c in conditions %}
-                      <option value="{{ c }}" {{ 'selected' if item.condition == c }}>{{ c|title }}</option>
-                      {% endfor %}
-                    </select>
-                    <button class="btn btn-sm btn-outline-success ms-1">Return</button>
-                  </form>
-                  {% endif %}
-                </td>
-              </tr>
-              {% else %}
-              <tr><td colspan="7" class="text-center text-muted-sm py-5">No reservation history found for this item.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
+        <table class="me-table mb-0">
+          <thead>
+            <tr><th>Event</th><th>Date</th><th>Qty</th><th>Status</th><th>Cond Out</th><th>Cond In</th><th class="text-end">Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for r in reservations %}
+            <tr>
+              <td>
+                {% if r.event %}
+                <a href="{{ url_for('events.detail', event_id=r.event.id) }}" style="font-weight:600; color:#1A1A2E;">
+                  {{ r.event.name }}
+                </a>
+                {% else %}—{% endif %}
+              </td>
+              <td>{{ r.event_date|dateformat }}</td>
+              <td><strong>{{ r.quantity }}</strong></td>
+              <td>
+                <span class="badge {{ 'bg-success' if r.status=='returned' else ('bg-warning text-dark' if r.status=='checked_out' else 'bg-secondary') }}">
+                  {{ r.status|replace('_',' ')|title }}
+                </span>
+              </td>
+              <td class="text-muted-sm cond-{{ r.condition_out or '' }}">{{ r.condition_out|title if r.condition_out else '—' }}</td>
+              <td class="text-muted-sm cond-{{ r.condition_in or '' }}">{{ r.condition_in|title if r.condition_in else '—' }}</td>
+              <td class="text-end">
+                {% if r.status == 'reserved' %}
+                <form action="{{ url_for('inventory.checkout', res_id=r.id) }}" method="POST" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <input type="hidden" name="condition" value="good" />
+                  <button class="btn btn-sm btn-outline-warning">Check Out</button>
+                </form>
+                {% elif r.status == 'checked_out' %}
+                <form action="{{ url_for('inventory.return_item', res_id=r.id) }}" method="POST" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                  <select name="condition" class="me-form-control d-inline p-1" style="width:80px; font-size:.7rem; height: auto;">
+                    {% for c in conditions %}
+                    <option value="{{ c }}">{{ c|title }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="btn btn-sm btn-outline-success ms-1">Return</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center py-5 text-muted">No reservations yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
