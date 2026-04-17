@@ -72,27 +72,23 @@ def _populate_event(evt, form):
 
 # ─── LIST VIEW ─────────────────────────────────────────────────────────────
 
-@events_bp.route("/")
+@events_bp.route("/<int:event_id>")
 @login_required
-def list_events():
-    status_filter = request.args.get("status", "")
-    type_filter   = request.args.get("type", "")
-    search        = request.args.get("q", "").strip()
-    page          = request.args.get("page", 1, type=int)
-
-    q = Event.query
-    if status_filter:
-        q = q.filter_by(status=status_filter)
-    if type_filter:
-        q = q.filter_by(event_type=type_filter)
-    if search:
-        q = q.filter(Event.name.ilike(f"%{search}%"))
-        
-    events = q.order_by(Event.event_date.desc()).paginate(page=page, per_page=20)
+def detail(event_id):
+    event = Event.query.get_or_404(event_id)
+    tab   = request.args.get("tab", "overview")
+    suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.company_name).all()
+    all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
     
-    return render_template("events/list.html",
-        events=events, statuses=EVENT_STATUSES, types=EVENT_TYPES,
-        status_filter=status_filter, type_filter=type_filter, search=search,
+    return render_template("events/detail.html",
+        event=event, 
+        tab=tab,
+        statuses=EVENT_STATUSES,  # <--- THIS IS THE MISSING PIECE
+        peg_categories=PEG_CATEGORIES,
+        payment_types=PAYMENT_TYPES,
+        payment_statuses=PAYMENT_STATUSES,
+        suppliers=suppliers,
+        all_users=all_users,
     )
 
 
