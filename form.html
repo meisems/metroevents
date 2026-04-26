@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}{% if meeting %}Edit Meeting{% else %}Schedule Meeting{% endif %} — {{ APP_NAME }}{% endblock %}
+
+{% block content %}
+<div class="page-header mb-4">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-1">
+      <li class="breadcrumb-item"><a href="{{ url_for('meetings.index') }}">Meeting Schedules</a></li>
+      <li class="breadcrumb-item active">
+        {% if meeting %}Edit — {{ meeting.client_name }}{% else %}New Meeting{% endif %}
+      </li>
+    </ol>
+  </nav>
+  <h2 class="mb-0">
+    <i class="bi bi-calendar2-plus me-2 text-primary"></i>
+    {% if meeting %}Edit Meeting{% else %}Schedule a Meeting{% endif %}
+  </h2>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body p-4">
+        <form method="POST"
+              action="{% if meeting %}{{ url_for('meetings.edit', meeting_id=meeting.id) }}{% else %}{{ url_for('meetings.new') }}{% endif %}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          {# ── Client Info ──────────────────────────────────────── #}
+          <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-person me-1"></i>Client Information
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-7">
+              <label class="form-label">Client Name <span class="text-danger">*</span></label>
+              <input type="text" name="client_name" class="form-control"
+                     value="{{ meeting.client_name if meeting else '' }}"
+                     placeholder="e.g. Juan dela Cruz" required>
+            </div>
+            <div class="col-12 col-md-5">
+              <label class="form-label">Contact No.</label>
+              <input type="text" name="contact_no" class="form-control"
+                     value="{{ meeting.contact_no if meeting else '' }}"
+                     placeholder="+63 9XX XXX XXXX">
+            </div>
+          </div>
+
+          {# ── Schedule ─────────────────────────────────────────── #}
+          <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-clock me-1"></i>Schedule
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-5">
+              <label class="form-label">Meeting Date <span class="text-danger">*</span></label>
+              <input type="date" name="meeting_date" class="form-control"
+                     value="{{ meeting.meeting_date.strftime('%Y-%m-%d') if meeting and meeting.meeting_date else '' }}"
+                     required>
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Time <span class="text-danger">*</span></label>
+              <input type="time" name="meeting_time" class="form-control"
+                     value="{{ meeting.meeting_time.strftime('%H:%M') if meeting and meeting.meeting_time else '' }}"
+                     required>
+            </div>
+            <div class="col-12 col-md-3">
+              <label class="form-label">Status</label>
+              <select name="status" class="form-select">
+                {% for s in status_options %}
+                <option value="{{ s }}"
+                  {% if meeting and meeting.status == s %}selected{% elif not meeting and s == 'scheduled' %}selected{% endif %}>
+                  {{ s | replace('_', ' ') | title }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          {# ── Location ─────────────────────────────────────────── #}
+          <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-geo-alt me-1"></i>Location
+          </h6>
+          <div class="mb-4">
+            <label class="form-label">Meeting Venue / Address <span class="text-danger">*</span></label>
+            <input type="text" name="location" class="form-control"
+                   value="{{ meeting.location if meeting else '' }}"
+                   placeholder="e.g. Metro Events Office, Starbucks BF Parañaque…" required>
+          </div>
+
+          {# ── Package ──────────────────────────────────────────── #}
+          <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-box-seam me-1"></i>Package
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-12 col-md-5">
+              <label class="form-label">Package Availed <span class="text-danger">*</span></label>
+              <select name="package_availed" class="form-select" required>
+                <option value="" disabled {% if not meeting %}selected{% endif %}>Select package…</option>
+                {% for pkg in packages %}
+                <option value="{{ pkg }}"
+                  {% if meeting and meeting.package_availed == pkg %}selected{% endif %}>
+                  {{ pkg }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-12 col-md-7">
+              <label class="form-label">Package Notes</label>
+              <input type="text" name="package_notes" class="form-control"
+                     value="{{ meeting.package_notes if meeting else '' }}"
+                     placeholder="Specific inclusions, add-ons, client requests…">
+            </div>
+          </div>
+
+          {# ── Linked Event (optional) ───────────────────────────── #}
+          {% if events %}
+          <h6 class="text-uppercase text-muted small fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-link-45deg me-1"></i>Link to Existing Event <span class="text-muted fw-normal">(optional)</span>
+          </h6>
+          <div class="mb-4">
+            <select name="event_id" class="form-select">
+              <option value="">— Not linked to an event —</option>
+              {% for ev in events %}
+              <option value="{{ ev.id }}"
+                {% if meeting and meeting.event_id == ev.id %}selected{% endif %}>
+                #{{ ev.id }} — {{ ev.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          {# ── Buttons ──────────────────────────────────────────── #}
+          <div class="d-flex gap-2 justify-content-end">
+            <a href="{{ url_for('meetings.index') }}" class="btn btn-outline-secondary">
+              Cancel
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>
+              {% if meeting %}Save Changes{% else %}Schedule Meeting{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
