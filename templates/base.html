@@ -50,6 +50,9 @@
       <a href="{{ url_for('inventory.list_items') }}" class="{{ 'active' if request.blueprint == 'inventory' }}">
         <span class="nav-icon">📦</span> Inventory
       </a>
+      <a href="{{ url_for('meetings.index') }}" class="{{ 'active' if request.blueprint == 'meetings' }}">
+        <span class="nav-icon">📅</span> Meeting Schedules
+      </a>
 
       {% if current_user.is_admin %}
       <div class="me-nav-section">Admin</div>
