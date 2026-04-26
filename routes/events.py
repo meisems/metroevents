@@ -72,43 +72,11 @@ def _populate_event(evt, form):
 
 # ─── LIST VIEW ─────────────────────────────────────────────────────────────
 
-@events_bp.route("/<int:event_id>")
+@events_bp.route("/")
 @login_required
-def detail(event_id):
-    event = Event.query.get_or_404(event_id)
-    tab   = request.args.get("tab", "overview")
-    suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.company_name).all()
-    all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
-    
-    return render_template("events/detail.html",
-        event=event, 
-        tab=tab,
-        statuses=EVENT_STATUSES,  # <--- THIS IS THE MISSING PIECE
-        peg_categories=PEG_CATEGORIES,
-        payment_types=PAYMENT_TYPES,
-        payment_statuses=PAYMENT_STATUSES,
-        suppliers=suppliers,
-        all_users=all_users,
-    )
-
-
-# ─── QUICK STATUS UPDATE ───────────────────────────────────────────────────
-
-@events_bp.route("/<int:event_id>/update-status", methods=["POST"])
-@login_required
-def update_status(event_id):
-    """Updates the status of an event from a quick-dropdown."""
-    event = Event.query.get_or_404(event_id)
-    new_status = request.form.get("status")
-    
-    if new_status in EVENT_STATUSES:
-        event.status = new_status
-        db.session.commit()
-        flash(f"Status for '{event.name}' updated to {new_status.title()}! ✅", "success")
-    else:
-        flash("Invalid status selected.", "danger")
-    
-    return redirect(request.referrer or url_for("events.list_events"))
+def list_events():
+    events = Event.query.order_by(Event.event_date.asc()).all()
+    return render_template("events/list.html", events=events, statuses=EVENT_STATUSES)
 
 
 # ─── CREATE NEW EVENT ──────────────────────────────────────────────────────
@@ -119,24 +87,24 @@ def new_event():
     if request.method == "POST":
         e = Event()
         _populate_event(e, request.form)
-        
+
         # Assign the unique ID (e.g., EVT-X4Y7Z9)
         e.event_id = Event.generate_unique_id()
-        
+
         db.session.add(e)
         db.session.commit()
-        
+
         flash(f"Event '{e.name}' created with ID {e.event_id}! ⚡", "success")
         return redirect(url_for("events.detail", event_id=e.id))
 
     clients      = Client.query.order_by(Client.full_name).all()
     coordinators = User.query.filter(User.role.in_(["admin","coordinator"])).all()
-    
-    return render_template("events/form.html", 
+
+    return render_template("events/form.html",
         event=None,
-        clients=clients, 
+        clients=clients,
         coordinators=coordinators,
-        types=EVENT_TYPES, 
+        types=EVENT_TYPES,
         statuses=EVENT_STATUSES
     )
 
@@ -150,17 +118,35 @@ def detail(event_id):
     tab   = request.args.get("tab", "overview")
     suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.company_name).all()
     all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
-    
+
     return render_template("events/detail.html",
-        event=event, 
+        event=event,
         tab=tab,
-        statuses=EVENT_STATUSES, # <--- ADD THIS LINE
+        statuses=EVENT_STATUSES,
         peg_categories=PEG_CATEGORIES,
         payment_types=PAYMENT_TYPES,
         payment_statuses=PAYMENT_STATUSES,
         suppliers=suppliers,
         all_users=all_users,
     )
+
+
+# ─── QUICK STATUS UPDATE ───────────────────────────────────────────────────
+
+@events_bp.route("/<int:event_id>/update-status", methods=["POST"])
+@login_required
+def update_status(event_id):
+    event = Event.query.get_or_404(event_id)
+    new_status = request.form.get("status")
+
+    if new_status in EVENT_STATUSES:
+        event.status = new_status
+        db.session.commit()
+        flash(f"Status for '{event.name}' updated to {new_status.title()}! ✅", "success")
+    else:
+        flash("Invalid status selected.", "danger")
+
+    return redirect(request.referrer or url_for("events.list_events"))
 
 
 # ─── EDIT & DELETE ─────────────────────────────────────────────────────────
@@ -174,7 +160,7 @@ def edit_event(event_id):
         db.session.commit()
         flash("Event updated.", "success")
         return redirect(url_for("events.detail", event_id=event.id))
-        
+
     clients      = Client.query.order_by(Client.full_name).all()
     coordinators = User.query.filter(User.role.in_(["admin","coordinator"])).all()
     return render_template("events/form.html", event=event,
@@ -217,15 +203,15 @@ def add_payment(event_id):
             p.due_date = datetime.strptime(raw_due, "%Y-%m-%d").date()
         except ValueError:
             pass
-            
+
     proof = request.files.get("proof_file")
     url   = save_upload(proof)
     if url:
         p.proof_of_payment_url = url
-        
+
     if p.status == "paid":
         p.paid_date = datetime.utcnow().date()
-        
+
     db.session.add(p)
     db.session.commit()
     flash("Payment recorded.", "success")
@@ -240,14 +226,14 @@ def add_peg(event_id):
     event = Event.query.get_or_404(event_id)
     img_file = request.files.get("peg_image")
     img_url  = save_upload(img_file)
-    
+
     if not img_url:
         img_url = request.form.get("image_url_ext", "").strip()
-        
+
     if not img_url:
         flash("Please upload an image or provide a URL.", "warning")
         return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
-        
+
     peg = MoodboardPeg(
         event_id          = event.id,
         title             = request.form.get("title", "").strip(),
@@ -272,7 +258,7 @@ def add_po(event_id):
     event = Event.query.get_or_404(event_id)
     proof = request.files.get("proof_file")
     proof_url = save_upload(proof)
-    
+
     po = PurchaseOrder(
         supplier_id           = int(request.form.get("supplier_id")),
         event_id              = event.id,
@@ -283,14 +269,14 @@ def add_po(event_id):
         delivery_time_window  = request.form.get("delivery_time_window", "").strip(),
         proof_of_payment_url  = proof_url,
     )
-    
+
     raw = request.form.get("delivery_date")
     if raw:
         try:
             po.delivery_date = datetime.strptime(raw, "%Y-%m-%d").date()
         except ValueError:
             pass
-            
+
     db.session.add(po)
     db.session.commit()
     flash("Purchase order added.", "success")
