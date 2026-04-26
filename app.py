@@ -37,7 +37,8 @@ def create_app(config_name: str = "default") -> Flask:
     from routes.files import files_bp
     from routes.reminders import reminders_bp
     from routes.client_portal import portal_bp
-
+    from routes.meetings import meetings_bp
+    
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(clients_bp)
@@ -53,6 +54,7 @@ def create_app(config_name: str = "default") -> Flask:
     app.register_blueprint(files_bp)
     app.register_blueprint(reminders_bp)
     app.register_blueprint(portal_bp)
+    app.register_blueprint(meetings_bp)
 
     # ── Jinja2 global helpers ─────────────────────────────────
     @app.template_filter("peso")
