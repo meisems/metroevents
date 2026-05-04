@@ -4,7 +4,7 @@ Creates and configures the Flask app.
 """
 
 import os
-from flask import Flask
+from flask import Flask, redirect, url_for
 from config import config
 from database import db, login_manager, migrate, csrf
 
@@ -20,6 +20,12 @@ def create_app(config_name: str = "default") -> Flask:
     login_manager.init_app(app)
     migrate.init_app(app, db)
     csrf.init_app(app)
+
+    # ── User loader (CRITICAL for Flask-Login) ───────────────
+    @login_manager.user_loader
+    def load_user(user_id):
+        from models.user import User
+        return User.query.get(int(user_id))
 
     # ── Register blueprints ───────────────────────────────────
     from routes.public import public_bp
@@ -40,7 +46,7 @@ def create_app(config_name: str = "default") -> Flask:
     from routes.client_portal import portal_bp
     from routes.meetings import meetings_bp
 
-    app.register_blueprint(public_bp)       # ← first so "/" is claimed early
+    app.register_blueprint(public_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(clients_bp)
@@ -87,7 +93,6 @@ def create_app(config_name: str = "default") -> Flask:
         from flask_login import current_user
         from datetime import date, timedelta
 
-        # Always inject app config vars
         base = {
             "APP_NAME":       app.config["APP_NAME"],
             "APP_TAGLINE":    app.config["APP_TAGLINE"],
@@ -95,9 +100,6 @@ def create_app(config_name: str = "default") -> Flask:
             "due_soon_count": 0,
         }
 
-        # Only query DB when a user is logged in
-        # This prevents unauthenticated visitors (landing page)
-        # from being redirected to login
         if current_user.is_authenticated:
             from models.payment import Payment
             today = date.today()
