@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Metro Events — Creating Memories</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --dark:   #1A1A2E;
+      --gold:   #D4A843;
+      --gold2:  #F0C060;
+      --light:  #F8F9FC;
+      --text:   #2D3748;
+      --muted:  #718096;
+    }
+
+    * { box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; color: var(--text); background: #fff; margin: 0; }
+
+    /* ── NAVBAR ── */
+    .pub-nav {
+      position: sticky; top: 0; z-index: 999;
+      background: rgba(26,26,46,.97);
+      backdrop-filter: blur(8px);
+      padding: 14px 0;
+    }
+    .pub-nav .brand { font-size: 1.25rem; font-weight: 800; color: #fff; text-decoration: none; }
+    .pub-nav .brand span { color: var(--gold); }
+    .pub-nav .tagline { font-size: .7rem; color: var(--gold2); letter-spacing: .05em; }
+    .pub-nav .nav-links a {
+      color: rgba(255,255,255,.8); text-decoration: none; font-size: .875rem;
+      font-weight: 500; padding: 6px 12px; border-radius: 6px;
+      transition: color .2s;
+    }
+    .pub-nav .nav-links a:hover { color: var(--gold); }
+    .btn-nav-login {
+      background: transparent; border: 1.5px solid var(--gold);
+      color: var(--gold) !important; border-radius: 8px;
+      padding: 6px 16px !important; font-weight: 600 !important;
+      transition: all .2s !important;
+    }
+    .btn-nav-login:hover { background: var(--gold) !important; color: var(--dark) !important; }
+    .btn-nav-register {
+      background: var(--gold); border: none; color: var(--dark) !important;
+      border-radius: 8px; padding: 6px 16px !important;
+      font-weight: 700 !important; transition: all .2s !important;
+    }
+    .btn-nav-register:hover { background: var(--gold2) !important; }
+
+    /* ── HERO ── */
+    .hero {
+      background: linear-gradient(135deg, var(--dark) 0%, #2D2D5E 60%, #1A1A2E 100%);
+      min-height: 92vh;
+      display: flex; align-items: center;
+      position: relative; overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .hero-badge {
+      display: inline-block;
+      background: rgba(212,168,67,.15); border: 1px solid rgba(212,168,67,.4);
+      color: var(--gold2); font-size: .75rem; font-weight: 600;
+      padding: 5px 14px; border-radius: 50px; letter-spacing: .08em;
+      text-transform: uppercase; margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 800; color: #fff; line-height: 1.15;
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--gold); }
+    .hero p {
+      font-size: 1.1rem; color: rgba(255,255,255,.7);
+      max-width: 520px; line-height: 1.7; margin-bottom: 36px;
+    }
+    .btn-hero-primary {
+      background: var(--gold); color: var(--dark);
+      font-weight: 700; font-size: 1rem;
+      padding: 14px 32px; border-radius: 10px;
+      text-decoration: none; border: none;
+      transition: all .2s; display: inline-block;
+    }
+    .btn-hero-primary:hover { background: var(--gold2); color: var(--dark); transform: translateY(-2px); }
+    .btn-hero-secondary {
+      background: transparent; color: #fff;
+      font-weight: 600; font-size: 1rem;
+      padding: 14px 32px; border-radius: 10px;
+      text-decoration: none; border: 1.5px solid rgba(255,255,255,.3);
+      transition: all .2s; display: inline-block;
+    }
+    .btn-hero-secondary:hover { border-color: var(--gold); color: var(--gold); }
+    .hero-stats {
+      display: flex; gap: 32px; margin-top: 48px;
+      padding-top: 32px; border-top: 1px solid rgba(255,255,255,.1);
+    }
+    .hero-stat-val { font-size: 1.8rem; font-weight: 800; color: var(--gold); }
+    .hero-stat-lbl { font-size: .75rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .06em; }
+    .hero-image-wrap {
+      position: relative; text-align: center;
+    }
+    .hero-floater {
+      background: rgba(255,255,255,.07); backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 16px; padding: 16px 20px;
+      color: #fff; font-size: .8rem;
+      position: absolute;
+    }
+    .hero-floater.f1 { top: 10%; left: -10%; }
+    .hero-floater.f2 { bottom: 15%; right: -5%; }
+    .hero-emoji { font-size: 7rem; display: block; line-height: 1; }
+
+    /* ── SECTIONS ── */
+    section { padding: 80px 0; }
+    .section-label {
+      font-size: .75rem; font-weight: 700; color: var(--gold);
+      text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px;
+    }
+    .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; color: var(--dark); margin-bottom: 14px; }
+    .section-sub { font-size: 1rem; color: var(--muted); max-width: 520px; line-height: 1.7; }
+
+    /* ── SERVICES ── */
+    .services { background: var(--light); }
+    .service-card {
+      background: #fff; border-radius: 16px;
+      padding: 32px 28px; height: 100%;
+      border: 1px solid #EEF0F6;
+      transition: all .25s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .service-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,.1); border-color: var(--gold); }
+    .service-icon { font-size: 2.4rem; margin-bottom: 16px; }
+    .service-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--dark); }
+    .service-card p { font-size: .875rem; color: var(--muted); line-height: 1.65; margin: 0; }
+
+    /* ── PACKAGES ── */
+    .pkg-card {
+      border-radius: 20px; padding: 36px 28px; height: 100%;
+      border: 2px solid #EEF0F6; position: relative;
+      transition: all .25s; background: #fff;
+    }
+    .pkg-card.featured {
+      border-color: var(--gold);
+      background: linear-gradient(160deg, #FFFBF0, #fff);
+      box-shadow: 0 8px 32px rgba(212,168,67,.15);
+    }
+    .pkg-badge {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--gold); color: var(--dark);
+      font-size: .7rem; font-weight: 700; padding: 4px 16px;
+      border-radius: 50px; text-transform: uppercase; letter-spacing: .08em;
+      white-space: nowrap;
+    }
+    .pkg-name { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
+    .pkg-price { font-size: 1.8rem; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
+    .pkg-price span { font-size: .9rem; font-weight: 400; color: var(--muted); }
+    .pkg-desc { font-size: .8rem; color: var(--muted); margin-bottom: 20px; }
+    .pkg-features { list-style: none; padding: 0; margin: 0 0 28px; }
+    .pkg-features li { font-size: .85rem; color: var(--text); padding: 6px 0; border-bottom: 1px solid #F0F2F7; display: flex; gap: 10px; align-items: flex-start; }
+    .pkg-features li:last-child { border: none; }
+    .pkg-features li::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; }
+    .btn-pkg {
+      display: block; text-align: center; text-decoration: none;
+      background: var(--dark); color: #fff;
+      padding: 12px; border-radius: 10px; font-weight: 600; font-size: .875rem;
+      transition: all .2s;
+    }
+    .btn-pkg:hover { background: var(--gold); color: var(--dark); }
+    .pkg-card.featured .btn-pkg { background: var(--gold); color: var(--dark); }
+    .pkg-card.featured .btn-pkg:hover { background: var(--dark); color: #fff; }
+
+    /* ── PORTFOLIO ── */
+    .portfolio { background: var(--dark); }
+    .portfolio .section-title { color: #fff; }
+    .portfolio .section-label { color: var(--gold2); }
+    .portfolio .section-sub { color: rgba(255,255,255,.6); }
+    .port-card {
+      border-radius: 16px; overflow: hidden;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      transition: all .25s;
+    }
+    .port-card:hover { transform: translateY(-4px); border-color: var(--gold); }
+    .port-img {
+      height: 200px; display: flex; align-items: center; justify-content: center;
+      font-size: 4rem; background: rgba(255,255,255,.04);
+    }
+    .port-body { padding: 20px; }
+    .port-type { font-size: .7rem; color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
+    .port-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .port-desc { font-size: .8rem; color: rgba(255,255,255,.5); line-height: 1.6; margin: 0; }
+
+    /* ── WHY US ── */
+    .whyus { background: var(--light); }
+    .why-item { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 28px; }
+    .why-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      background: rgba(212,168,67,.12); display: flex; align-items: center;
+      justify-content: center; font-size: 1.4rem; flex-shrink: 0;
+    }
+    .why-item h5 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; color: var(--dark); }
+    .why-item p { font-size: .825rem; color: var(--muted); line-height: 1.6; margin: 0; }
+
+    /* ── TESTIMONIALS ── */
+    .testi-card {
+      background: #fff; border-radius: 16px; padding: 28px;
+      border: 1px solid #EEF0F6; height: 100%;
+      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+    }
+    .testi-stars { color: var(--gold); font-size: .9rem; margin-bottom: 12px; }
+    .testi-text { font-size: .875rem; color: var(--text); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+    .testi-name { font-size: .85rem; font-weight: 700; color: var(--dark); }
+    .testi-event { font-size: .75rem; color: var(--muted); }
+
+    /* ── CTA ── */
+    .cta-section {
+      background: linear-gradient(135deg, var(--dark), #2D2D5E);
+      padding: 80px 0; text-align: center;
+    }
+    .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; color: #fff; margin-bottom: 14px; }
+    .cta-section h2 span { color: var(--gold); }
+    .cta-section p { color: rgba(255,255,255,.65); font-size: 1rem; margin-bottom: 32px; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: #111122; padding: 40px 0 24px;
+      color: rgba(255,255,255,.5); font-size: .8rem;
+    }
+    footer .brand { font-size: 1.1rem; font-weight: 800; color: #fff; }
+    footer .brand span { color: var(--gold); }
+    footer a { color: rgba(255,255,255,.5); text-decoration: none; }
+    footer a:hover { color: var(--gold); }
+    footer hr { border-color: rgba(255,255,255,.08); }
+  </style>
+</head>
+<body>
+
+<!-- ── NAVBAR ────────────────────────────────────────────────── -->
+<nav class="pub-nav">
+  <div class="container d-flex align-items-center justify-content-between">
+    <a href="#" class="brand">
+      <span>⚡</span> {{ APP_NAME }}
+      <div class="tagline">{{ APP_TAGLINE }}</div>
+    </a>
+    <div class="nav-links d-none d-md-flex align-items-center gap-1">
+      <a href="#services">Services</a>
+      <a href="#packages">Packages</a>
+      <a href="#portfolio">Portfolio</a>
+      <a href="#testimonials">Reviews</a>
+      <a href="#contact">Contact</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-nav-login ms-2">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="btn-nav-register ms-1">Get Started</a>
+    </div>
+    <!-- Mobile -->
+    <div class="d-md-none d-flex gap-2">
+      <a href="{{ url_for('auth.login') }}" class="btn-nav-login">Login</a>
+      <a href="{{ url_for('auth.register') }}" class="btn-nav-register">Sign Up</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ── HERO ──────────────────────────────────────────────────── -->
+<section class="hero">
+  <div class="container position-relative">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <div class="hero-badge">✨ Premium Event Management</div>
+        <h1>
+          We Turn Your<br>
+          Vision Into a<br>
+          <span>Lasting Memory</span>
+        </h1>
+        <p>
+          From intimate weddings to grand corporate galas — Metro Events handles every detail so you can be fully present for every moment.
+        </p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="#packages" class="btn-hero-primary">View Packages</a>
+          <a href="{{ url_for('auth.login') }}" class="btn-hero-secondary">Client Portal →</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <div class="hero-stat-val">200+</div>
+            <div class="hero-stat-lbl">Events Done</div>
+          </div>
+          <div>
+            <div class="hero-stat-val">98%</div>
+            <div class="hero-stat-lbl">Happy Clients</div>
+          </div>
+          <div>
+            <div class="hero-stat-val">5★</div>
+            <div class="hero-stat-lbl">Avg Rating</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-block">
+        <div class="hero-image-wrap" style="padding: 40px 0;">
+          <span class="hero-emoji">🎊</span>
+          <div class="hero-floater f1">
+            <div style="font-size:1.2rem;">📅</div>
+            <div style="font-weight:700;">Next Event</div>
+            <div style="color:var(--gold2);">Tomorrow, 3PM</div>
+          </div>
+          <div class="hero-floater f2">
+            <div style="font-size:1.2rem;">✅</div>
+            <div style="font-weight:700;">All Set!</div>
+            <div style="color:rgba(255,255,255,.6);">12 tasks done</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SERVICES ──────────────────────────────────────────────── -->
+<section class="services" id="services">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">What We Do</div>
+      <div class="section-title">Full-Service Event Management</div>
+      <div class="section-sub mx-auto">We take care of everything — from the first consultation to the last dance.</div>
+    </div>
+    <div class="row g-4">
+      <div class="col-6 col-lg-3">
+        <div class="service-card">
+          <div class="service-icon">💍</div>
+          <h4>Weddings</h4>
+          <p>Intimate ceremonies to grand receptions — every detail handled with love.</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="service-card">
+          <div class="service-icon">🎂</div>
+          <h4>Debuts & Birthdays</h4>
+          <p>Make milestone celebrations unforgettable with our signature styling.</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="service-card">
+          <div class="service-icon">🏢</div>
+          <h4>Corporate Events</h4>
+          <p>Conferences, launches, and team events that leave a lasting impression.</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="service-card">
+          <div class="service-icon">🎉</div>
+          <h4>Special Occasions</h4>
+          <p>Reunions, graduations, christenings — no event is too big or too small.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PACKAGES ──────────────────────────────────────────────── -->
+<section id="packages">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Our Offerings</div>
+      <div class="section-title">Choose Your Package</div>
+      <div class="section-sub mx-auto">Transparent pricing. No hidden fees. Just memories.</div>
+    </div>
+    <div class="row g-4 justify-content-center">
+      <!-- Silver -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="pkg-card">
+          <div class="pkg-name">🥈 Silver</div>
+          <div class="pkg-price">₱25,000 <span>/ event</span></div>
+          <div class="pkg-desc">Perfect for small, intimate gatherings.</div>
+          <ul class="pkg-features">
+            <li>Up to 50 guests</li>
+            <li>1 Event Coordinator</li>
+            <li>Basic décor setup</li>
+            <li>4-hour coverage</li>
+            <li>Event timeline planning</li>
+          </ul>
+          <a href="{{ url_for('auth.register') }}" class="btn-pkg">Book Now</a>
+        </div>
+      </div>
+      <!-- Gold (featured) -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="pkg-card featured">
+          <div class="pkg-badge">Most Popular</div>
+          <div class="pkg-name">🥇 Gold</div>
+          <div class="pkg-price">₱55,000 <span>/ event</span></div>
+          <div class="pkg-desc">Our most-loved package for mid-size events.</div>
+          <ul class="pkg-features">
+            <li>Up to 150 guests</li>
+            <li>2 Event Coordinators</li>
+            <li>Premium décor & styling</li>
+            <li>8-hour full coverage</li>
+            <li>Supplier coordination</li>
+            <li>Photo & video referral</li>
+          </ul>
+          <a href="{{ url_for('auth.register') }}" class="btn-pkg">Book Now</a>
+        </div>
+      </div>
+      <!-- Platinum -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="pkg-card">
+          <div class="pkg-name">💎 Platinum</div>
+          <div class="pkg-price">₱95,000 <span>/ event</span></div>
+          <div class="pkg-desc">For large-scale, premium celebrations.</div>
+          <ul class="pkg-features">
+            <li>Up to 300 guests</li>
+            <li>Full coordinator team</li>
+            <li>Luxury décor & florals</li>
+            <li>Full-day coverage</li>
+            <li>Dedicated account manager</li>
+            <li>Post-event report</li>
+          </ul>
+          <a href="{{ url_for('auth.register') }}" class="btn-pkg">Book Now</a>
+        </div>
+      </div>
+      <!-- Custom -->
+      <div class="col-12 col-md-6 col-lg-3">
+        <div class="pkg-card">
+          <div class="pkg-name">⚡ Custom</div>
+          <div class="pkg-price">Let's Talk <span></span></div>
+          <div class="pkg-desc">Tailor-made for your unique vision.</div>
+          <ul class="pkg-features">
+            <li>Any guest count</li>
+            <li>Custom team size</li>
+            <li>Your theme, your way</li>
+            <li>Flexible hours</li>
+            <li>Full concierge service</li>
+            <li>Priority booking</li>
+          </ul>
+          <a href="#contact" class="btn-pkg">Contact Us</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PORTFOLIO ─────────────────────────────────────────────── -->
+<section class="portfolio" id="portfolio">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Our Work</div>
+      <div class="section-title">Recent Events</div>
+      <div class="section-sub mx-auto">A glimpse into the memories we've helped create.</div>
+    </div>
+    <div class="row g-4">
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="port-card">
+          <div class="port-img">💍</div>
+          <div class="port-body">
+            <div class="port-type">Wedding</div>
+            <div class="port-title">The Cruz–Santos Wedding</div>
+            <div class="port-desc">A romantic garden ceremony for 200 guests in Tagaytay with a blush and gold theme.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="port-card">
+          <div class="port-img">🎂</div>
+          <div class="port-body">
+            <div class="port-type">Debut</div>
+            <div class="port-title">Sophia's Grand Debut</div>
+            <div class="port-desc">An enchanted forest-themed debut with 18 roses, 18 candles, and 300 guests.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="port-card">
+          <div class="port-img">🏢</div>
+          <div class="port-body">
+            <div class="port-type">Corporate</div>
+            <div class="port-title">TechCorp Product Launch</div>
+            <div class="port-desc">Full AV production, stage design, and supplier management for a 500-person launch event.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="port-card">
+          <div class="port-img">🥂</div>
+          <div class="port-body">
+            <div class="port-type">Anniversary</div>
+            <div class="port-title">Dela Rosa 25th Anniversary</div>
+            <div class="port-desc">Silver anniversary celebration with a surprise program and custom backdrop design.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="port-card">
+          <div class="port-img">🎓</div>
+          <div class="port-body">
+            <div class="port-type">Graduation</div>
+            <div class="port-title">Batch 2024 Grad Party</div>
+            <div class="port-desc">A festive outdoor graduation party with photo booth, food trucks, and live band.</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="port-card">
+          <div class="port-img">🙏</div>
+          <div class="port-body">
+            <div class="port-type">Christening</div>
+            <div class="port-title">Baby Lorenzo's Christening</div>
+            <div class="port-desc">A whimsical woodland-themed christening for 120 guests with custom centerpieces.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHY US ─────────────────────────────────────────────────── -->
+<section class="whyus">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-5">
+        <div class="section-label">Why Metro Events</div>
+        <div class="section-title">We Don't Just Plan Events. We Create Experiences.</div>
+        <div class="section-sub">Our team of dedicated professionals brings creativity, precision, and passion to every event we touch.</div>
+      </div>
+      <div class="col-lg-7">
+        <div class="why-item">
+          <div class="why-icon">🎯</div>
+          <div>
+            <h5>Attention to Detail</h5>
+            <p>We obsess over every element — from table settings to sound checks — so nothing is left to chance.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">💬</div>
+          <div>
+            <h5>Dedicated Client Portal</h5>
+            <p>Track your event progress, payments, and timelines in real-time through your personal client dashboard.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">🤝</div>
+          <div>
+            <h5>Trusted Supplier Network</h5>
+            <p>We work with the best photographers, caterers, and florists — so you always get top quality.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <div class="why-icon">📱</div>
+          <div>
+            <h5>Always Reachable</h5>
+            <p>Your coordinator is just a message away. We're here whenever you need us, day or night.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ───────────────────────────────────────────── -->
+<section id="testimonials">
+  <div class="container">
+    <div class="text-center mb-5">
+      <div class="section-label">Client Love</div>
+      <div class="section-title">What Our Clients Say</div>
+    </div>
+    <div class="row g-4">
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">"Metro Events made our wedding absolutely magical. Every detail was perfect and our guests couldn't stop talking about it!"</p>
+          <div class="testi-name">Maria & Jose Cruz</div>
+          <div class="testi-event">Wedding · March 2025</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">"The client portal was so convenient — I could check everything online. The team was professional and very organized!"</p>
+          <div class="testi-name">Angela Reyes</div>
+          <div class="testi-event">Debut · January 2025</div>
+        </div>
+      </div>
+      <div class="col-12 col-md-6 col-lg-4">
+        <div class="testi-card">
+          <div class="testi-stars">★★★★★</div>
+          <p class="testi-text">"We hired Metro Events for our company's annual gala. The execution was flawless. Already booked them again for next year!"</p>
+          <div class="testi-name">Ramon Villanueva</div>
+          <div class="testi-event">Corporate Gala · Dec 2024</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ────────────────────────────────────────────────────── -->
+<section class="cta-section" id="contact">
+  <div class="container">
+    <h2>Ready to Start <span>Planning?</span></h2>
+    <p>Let's turn your dream event into reality. Get started today — it only takes a minute.</p>
+    <div class="d-flex justify-content-center gap-3 flex-wrap">
+      <a href="{{ url_for('auth.register') }}" class="btn-hero-primary">Create Free Account</a>
+      <a href="{{ url_for('auth.login') }}" class="btn-hero-secondary">Already a client? Login</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ─────────────────────────────────────────────────── -->
+<footer>
+  <div class="container">
+    <div class="row g-4 mb-4">
+      <div class="col-12 col-md-4">
+        <div class="brand mb-2"><span>⚡</span> {{ APP_NAME }}</div>
+        <div style="font-size:.8rem; color:rgba(255,255,255,.4); line-height:1.7;">
+          Creating unforgettable memories<br>one event at a time.
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div style="color:rgba(255,255,255,.7);font-weight:600;font-size:.8rem;margin-bottom:10px;">Services</div>
+        <div><a href="#services">Weddings</a></div>
+        <div><a href="#services">Debuts</a></div>
+        <div><a href="#services">Corporate</a></div>
+        <div><a href="#services">Special Events</a></div>
+      </div>
+      <div class="col-6 col-md-2">
+        <div style="color:rgba(255,255,255,.7);font-weight:600;font-size:.8rem;margin-bottom:10px;">Account</div>
+        <div><a href="{{ url_for('auth.login') }}">Login</a></div>
+        <div><a href="{{ url_for('auth.register') }}">Register</a></div>
+        <div><a href="#packages">Packages</a></div>
+      </div>
+      <div class="col-12 col-md-4">
+        <div style="color:rgba(255,255,255,.7);font-weight:600;font-size:.8rem;margin-bottom:10px;">Contact Us</div>
+        <div>📧 hello@metroevents.com</div>
+        <div style="margin-top:4px;">📞 +63 912 345 6789</div>
+        <div style="margin-top:4px;">📍 Metro Manila, Philippines</div>
+      </div>
+    </div>
+    <hr>
+    <div class="text-center" style="font-size:.75rem;">
+      © {{ 2025 }} {{ APP_NAME }}. All rights reserved. Made with ❤️ in the Philippines.
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+</script>
+</body>
+</html>
