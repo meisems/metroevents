@@ -75,7 +75,9 @@ def _populate_event(evt, form):
 @events_bp.route("/")
 @login_required
 def list_events():
-    events = Event.query.order_by(Event.event_date.asc()).all()
+    # FIXED: Added pagination logic to replace .all()
+    page = request.args.get('page', 1, type=int)
+    events = Event.query.order_by(Event.event_date.asc()).paginate(page=page, per_page=10)
     return render_template("events/list.html", events=events, statuses=EVENT_STATUSES)
 
 
