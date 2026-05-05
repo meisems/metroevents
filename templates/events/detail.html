@@ -51,7 +51,7 @@
       ('inventory', '📦', 'Inventory'),
       ('suppliers', '🤝', 'Suppliers'),
       ('payments', '💸', 'Payments'),
-      ('log', '📝', 'Event Log'),
+      ('event_log', '📝', 'Event Log'),
     ] %}
     {% for t_id, t_icon, t_label in nav_tabs %}
     <a href="{{ url_for('events.detail', event_id=event.id, tab=t_id) }}"
