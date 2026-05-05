@@ -230,14 +230,52 @@
     <h5>📝 Event Day Log</h5>
     <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addLogForm">➕ New Entry</button>
 </div>
+
+<!-- 🟢 ADD LOG ENTRY FORM -->
+<div class="collapse mb-4" id="addLogForm">
+  <div class="me-card me-card-body shadow-sm">
+    <form method="POST" action="{{ url_for('event_log.add_entry', event_id=event.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="me-form-label small fw-bold text-uppercase text-muted">Type</label>
+          <select name="log_type" class="form-select border-0 bg-light" style="padding: 12px; border-radius: 10px;">
+            <option value="info">ℹ️ Info</option>
+            <option value="milestone">🚩 Milestone</option>
+            <option value="alert">⚠️ Alert</option>
+            <option value="success">✅ Success</option>
+          </select>
+        </div>
+        <div class="col-md-9">
+          <label class="me-form-label small fw-bold text-uppercase text-muted">Message</label>
+          <div class="d-flex gap-2">
+            <input type="text" name="message" class="form-control border-0 bg-light" 
+                   placeholder="e.g., Suppliers have arrived at the venue..." required 
+                   style="padding: 12px; border-radius: 10px;">
+            <button type="submit" class="btn-gold px-4" style="border-radius: 10px; font-weight: 700;">Post ⚡</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="timeline">
   {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
   {% for entry in logs %}
-  <div class="mb-2 p-3 bg-white" style="border-left:4px solid #C9A84C;">
-    <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
-    <div class="text-muted small">{{ entry.logged_at.strftime('%I:%M %p') }}</div>
+  <div class="mb-2 p-3 bg-white shadow-sm" style="border-left:4px solid {{ '#F6AD55' if entry.log_type == 'alert' else '#C9A84C' }}; border-radius: 0 8px 8px 0;">
+    <div class="d-flex justify-content-between">
+      <strong>{{ entry.log_type|title }}</strong>
+      <span class="text-muted small">{{ entry.logged_at.strftime('%I:%M %p') }}</span>
+    </div>
+    <div class="mt-1 text-dark">{{ entry.message }}</div>
   </div>
-  {% else %}<p class="text-muted text-center py-5">No log entries found.</p>{% endfor %}
+  {% else %}
+  <div class="text-center py-5">
+    <div style="font-size: 3rem; opacity: 0.3;">📋</div>
+    <p class="text-muted mt-2">No log entries found for today.</p>
+  </div>
+  {% endfor %}
 </div>
 
 {# =================== 🚨 FALLBACK =================== #}
