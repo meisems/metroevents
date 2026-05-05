@@ -37,6 +37,22 @@
       transition: color .2s;
     }
     .pub-nav .nav-links a:hover { color: var(--gold); }
+    
+    /* ── DROPDOWN FIX ── */
+    /* Force dropdown links to be dark so they are visible on white background */
+    .pub-nav .dropdown-menu .dropdown-item {
+      color: var(--text) !important;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .pub-nav .dropdown-menu .dropdown-item:hover {
+      background: var(--light);
+      color: var(--dark) !important;
+    }
+    .pub-nav .dropdown-menu .dropdown-item.text-danger {
+      color: #dc3545 !important;
+    }
+
     .btn-nav-login {
       background: transparent; border: 1.5px solid var(--gold);
       color: var(--gold) !important; border-radius: 8px;
@@ -261,13 +277,29 @@
                 👋 Welcome, {{ current_user.name.split(' ')[0] }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userMenu">
-                <li><a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}">⚙️ Edit Profile</a></li>
-                <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#orderRequestModal">📦 Request a Package</a></li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}">
+                    <span class="me-2">⚙️</span> Edit Profile
+                  </a>
+                </li>
+                <li>
+                  <a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#orderRequestModal">
+                    <span class="me-2">📦</span> Request a Package
+                  </a>
+                </li>
                 {% if current_user.role != 'client' %}
-                <li><a class="dropdown-item py-2" href="{{ url_for('dashboard.index') }}">📊 Admin Dashboard</a></li>
+                <li>
+                  <a class="dropdown-item py-2" href="{{ url_for('dashboard.index') }}">
+                    <span class="me-2">📊</span> Admin Dashboard
+                  </a>
+                </li>
                 {% endif %}
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}">🚪 Logout</a></li>
+                <li>
+                  <a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}">
+                    <span class="me-2">🚪</span> Logout
+                  </a>
+                </li>
             </ul>
         </div>
       {% else %}
