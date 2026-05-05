@@ -1,6 +1,6 @@
 """
 Metro Events — Auth Routes
-Login, logout, register (public clients & admin team creation), profile.
+Login, logout, register (public clients & admin team creation), profile, and role promotion.
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
@@ -83,7 +83,7 @@ def register():
                 return redirect(url_for("auth.login"))
             
             elif current_user.is_authenticated and current_user.is_admin:
-                flash(f"Team member '{name}' created as {role|title}.", "success")
+                flash(f"Team member '{name}' created as {role.title()}.", "success")
                 return redirect(url_for("auth.users_list"))
             
             else:
@@ -115,3 +115,34 @@ def profile():
         db.session.commit()
         flash("Profile updated.", "success")
     return render_template("auth/profile.html")
+
+
+@auth_bp.route("/users/<int:user_id>/promote", methods=["POST"])
+@login_required
+def promote_user(user_id):
+    """
+    Allows an admin to change the role of any user (e.g., promote a client to admin).
+    """
+    # Security: Only admins can change roles
+    if not current_user.is_admin:
+        flash("Access denied.", "danger")
+        return redirect(url_for("dashboard.index"))
+        
+    user = User.query.get_or_404(user_id)
+    new_role = request.form.get("role")
+    
+    # Prevent the admin from accidentally demoting themselves and getting locked out
+    if user.id == current_user.id and new_role != "admin":
+        flash("You cannot demote your own admin account.", "warning")
+        return redirect(url_for("auth.users_list"))
+        
+    # Update the role safely
+    valid_roles = ["client", "warehouse", "coordinator", "admin"]
+    if new_role in valid_roles:
+        user.role = new_role
+        db.session.commit()
+        flash(f"Account for {user.name} successfully updated to {new_role.title()}.", "success")
+    else:
+        flash("Invalid role selected.", "danger")
+        
+    return redirect(url_for("auth.users_list"))
