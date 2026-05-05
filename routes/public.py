@@ -21,7 +21,21 @@ def submit_request():
     package = request.form.get("package_type")
     message = request.form.get("client_message")
     
-    # Optional: Logic to save this inquiry to your database goes here
+    # ── SAVE TO DATABASE ──────────────────────────────────────
+    from models.client import Client  # Import your Client model
     
-    flash(f"Your request for the {package} package has been sent! ⚡", "success")
+    # Create a new entry in your CRM
+    new_inquiry = Client(
+        full_name=current_user.name,
+        email=current_user.email,
+        phone=current_user.phone,
+        pipeline_stage="new_inquiry", # This matches your dashboard filter
+        notes=f"PACKAGE REQUEST: {package}\n\nMESSAGE: {message}"
+    )
+    
+    db.session.add(new_inquiry)
+    db.session.commit()
+    # ──────────────────────────────────────────────────────────
+    
+    flash(f"Your request for the {package} package has been sent to our team! ⚡", "success")
     return redirect(url_for("public.index"))
