@@ -19,10 +19,12 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @login_required
 def index():
     # 🚨 THE BOUNCER: Kick clients back to the public landing page.
-    # Using a direct path "/" is safer than url_for if the blueprint name is uncertain.
     if current_user.role == 'client':
-        flash("Please use the Client Portal to manage your events.", "info")
-        return redirect("/")
+        flash("Welcome to your portal!", "info")
+        # FIXED: Points to 'public.index' to match your app.py registration
+        return redirect(url_for('public.index')) 
+
+    # ... rest of your dashboard code ...
 
     today = date.today()
     upcoming_days = today + timedelta(days=30)
