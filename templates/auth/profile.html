@@ -2,6 +2,15 @@
 {% block title %}Profile{% endblock %}
 {% block page_title %}My Profile{% endblock %}
 
+{% block topbar_actions %}
+  {# 🟢 Header Shortcut: Lets clients jump back to the landing page immediately #}
+  {% if current_user.role == 'client' %}
+    <a href="{{ url_for('public.index') }}" class="btn btn-sm btn-outline-secondary">
+      <span class="me-1">⬅️</span> Back to Website
+    </a>
+  {% endif %}
+{% endblock %}
+
 {% block content %}
 <div style="max-width:480px;">
   <div class="me-card">
@@ -9,24 +18,40 @@
     <div class="me-card-body">
       <form method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        
         <div class="mb-3">
           <label class="me-form-label">Name</label>
           <input type="text" name="name" class="me-form-control" value="{{ current_user.name }}" required />
         </div>
+        
         <div class="mb-3">
           <label class="me-form-label">Phone</label>
           <input type="text" name="phone" class="me-form-control" value="{{ current_user.phone or '' }}" />
         </div>
+        
         <div class="mb-3">
           <label class="me-form-label">Email</label>
           <input type="email" class="me-form-control" value="{{ current_user.email }}" disabled />
         </div>
+        
         <hr class="divider" />
+        
         <div class="mb-3">
           <label class="me-form-label">New Password <small class="text-muted">(leave blank to keep current)</small></label>
           <input type="password" name="new_password" class="me-form-control" placeholder="••••••••" minlength="6" />
         </div>
-        <button type="submit" class="btn-gold">Save Changes</button>
+        
+        <div class="d-flex align-items-center gap-2">
+          <button type="submit" class="btn-gold">Save Changes</button>
+          
+          {# 🟢 Contextual Cancel: Provides a clear exit path for clients next to the save button #}
+          {% if current_user.role == 'client' %}
+            <a href="{{ url_for('public.index') }}" class="btn btn-light" 
+               style="border-radius: 10px; font-weight: 600; font-size: .875rem; padding: 12px 24px; text-decoration: none; color: var(--muted);">
+               Cancel
+            </a>
+          {% endif %}
+        </div>
       </form>
     </div>
   </div>
