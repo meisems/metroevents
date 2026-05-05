@@ -13,8 +13,11 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    # 1. Traffic Director for ALREADY logged-in users
     if current_user.is_authenticated:
-        return redirect(url_for("dashboard.index"))
+        if current_user.role == 'client':
+            return redirect("/") # Send clients to the public landing page
+        return redirect(url_for("dashboard.index")) # Send team to the admin dashboard
     
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -26,8 +29,16 @@ def login():
             user.last_login = datetime.utcnow()
             db.session.commit()
             flash(f"Welcome back, {user.name}! 👋", "success")
+            
             nxt = request.args.get("next")
-            return redirect(nxt or url_for("dashboard.index"))
+            if nxt:
+                return redirect(nxt)
+                
+            # 2. Traffic Director for NEWLY logged-in users
+            if user.role == 'client':
+                return redirect("/") # Send clients to the public landing page
+            else:
+                return redirect(url_for("dashboard.index")) # Send team to the admin dashboard
             
         flash("Invalid email or password.", "danger")
     return render_template("auth/login.html")
@@ -54,7 +65,7 @@ def register():
     # Prevent already logged-in non-admins (like regular clients) from seeing the register page
     if current_user.is_authenticated and not current_user.is_admin:
         flash("You already have an account.", "info")
-        return redirect(url_for("dashboard.index"))
+        return redirect("/") # Also send them to the root instead of the dashboard
 
     if request.method == "POST":
         name  = request.form.get("name", "").strip()
@@ -98,7 +109,7 @@ def register():
 def users_list():
     if not current_user.is_admin:
         flash("Access denied.", "danger")
-        return redirect(url_for("dashboard.index"))
+        return redirect("/") # Redirect unauthorized users to root
     users = User.query.order_by(User.name).all()
     return render_template("auth/users.html", users=users)
 
@@ -126,7 +137,7 @@ def promote_user(user_id):
     # Security: Only admins can change roles
     if not current_user.is_admin:
         flash("Access denied.", "danger")
-        return redirect(url_for("dashboard.index"))
+        return redirect("/")
         
     user = User.query.get_or_404(user_id)
     new_role = request.form.get("role")
