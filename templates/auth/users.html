@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Team{% endblock %}
-{% block page_title %}Team Members{% endblock %}
+{% block title %}Team & Users{% endblock %}
+{% block page_title %}Team & Users{% endblock %}
 {% block breadcrumb %}Admin → Users{% endblock %}
 {% block topbar_actions %}
   <a href="{{ url_for('auth.register') }}" class="btn-gold">➕ Add User</a>
@@ -9,36 +9,66 @@
 {% block content %}
 <div class="me-card">
   <div class="me-card-body p-0">
-    <table class="me-table">
-      <thead>
-        <tr>
-          <th>Name</th><th>Email</th><th>Role</th><th>Phone</th><th>Last Login</th><th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for u in users %}
-        <tr>
-          <td>
-            <div class="d-flex align-items-center gap-2">
-              <div class="me-avatar" style="width:30px;height:30px;font-size:.75rem;">{{ u.name[0]|upper }}</div>
-              <strong>{{ u.name }}</strong>
-            </div>
-          </td>
-          <td>{{ u.email }}</td>
-          <td><span class="badge bg-secondary">{{ u.role }}</span></td>
-          <td>{{ u.phone or '—' }}</td>
-          <td class="text-muted-sm">{{ u.last_login|dateformat if u.last_login else 'Never' }}</td>
-          <td>
-            {% if u.is_active %}
-              <span class="badge bg-success">Active</span>
-            {% else %}
-              <span class="badge bg-danger">Inactive</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="me-table mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Phone</th>
+            <th>Last Login</th>
+            <th>Status</th>
+            <!-- Added Actions Column -->
+            <th class="text-end">Update Role</th> 
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div class="me-avatar" style="width:30px;height:30px;font-size:.75rem;">{{ u.name[0]|upper }}</div>
+                <strong>{{ u.name }}</strong>
+              </div>
+            </td>
+            <td>{{ u.email }}</td>
+            <td>
+              <span class="badge {{ 'bg-primary' if u.role == 'admin' else ('bg-info text-dark' if u.role == 'coordinator' else 'bg-secondary') }}">
+                {{ u.role|title }}
+              </span>
+            </td>
+            <td>{{ u.phone or '—' }}</td>
+            <td class="text-muted-sm">{{ u.last_login|dateformat if u.last_login else 'Never' }}</td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-danger">Inactive</span>
+              {% endif %}
+            </td>
+            
+            <!-- 🚨 The Promotion Form -->
+            <td class="text-end">
+              <form action="{{ url_for('auth.promote_user', user_id=u.id) }}" method="POST" class="d-flex align-items-center justify-content-end gap-2 m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                
+                <select name="role" class="form-select form-select-sm" style="width: 125px;">
+                  <option value="client" {% if u.role == 'client' %}selected{% endif %}>Client</option>
+                  <option value="warehouse" {% if u.role == 'warehouse' %}selected{% endif %}>Warehouse</option>
+                  <option value="coordinator" {% if u.role == 'coordinator' %}selected{% endif %}>Coordinator</option>
+                  <option value="admin" {% if u.role == 'admin' %}selected{% endif %}>Admin</option>
+                </select>
+                
+                <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+              </form>
+            </td>
+            
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
