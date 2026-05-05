@@ -19,10 +19,9 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @login_required
 def index():
     # 🚨 THE BOUNCER: Kick clients back to the public landing page
-    # We check the role immediately to prevent unauthorized access.
     if current_user.role == 'client':
         flash("Please use the Client Portal to manage your events.", "info")
-        return redirect(url_for('main.index')) # Ensure this points to your public home route
+        return redirect("/") # Ensure this points to your public home route
 
     today = date.today()
     upcoming_days = today + timedelta(days=30)
