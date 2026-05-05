@@ -18,10 +18,11 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @dashboard_bp.route("/dashboard")
 @login_required
 def index():
-    # 🚨 THE BOUNCER: Kick clients back to the public landing page
+    # 🚨 THE BOUNCER: Kick clients back to the public landing page.
+    # Using a direct path "/" is safer than url_for if the blueprint name is uncertain.
     if current_user.role == 'client':
         flash("Please use the Client Portal to manage your events.", "info")
-        return redirect("/") # Ensure this points to your public home route
+        return redirect("/")
 
     today = date.today()
     upcoming_days = today + timedelta(days=30)
