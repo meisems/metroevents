@@ -44,24 +44,19 @@
         <!-- 🎛 DYNAMIC HEADER -->
         <div class="text-center mb-4">
             <div style="font-size:2.2rem; font-weight:900; color:#1A1A2E; letter-spacing:1px;">⚡ Metro Events</div>
-            
-            {% if is_first_user %}
-                <div style="color:#C9A84C; font-style:italic; font-size:.9rem; margin-top:4px;">Initial System Setup</div>
-            {% elif current_user.is_authenticated and current_user.is_admin %}
+            {% if current_user.is_authenticated and current_user.is_admin %}
                 <div style="color:#C9A84C; font-style:italic; font-size:.9rem; margin-top:4px;">Team Management</div>
             {% else %}
-                <div style="color:#C9A84C; font-style:italic; font-size:.9rem; margin-top:4px;">Client Portal</div>
+                <div style="color:#C9A84C; font-style:italic; font-size:.9rem; margin-top:4px;">Account Setup</div>
             {% endif %}
         </div>
 
         <!-- 🎛 DYNAMIC TITLE -->
         <h5 style="font-weight:800; color:#1A1A2E; margin-bottom:22px; text-align:center;">
-            {% if is_first_user %}
-                🔑 Create Master Admin
-            {% elif current_user.is_authenticated and current_user.is_admin %}
+            {% if current_user.is_authenticated and current_user.is_admin %}
                 ➕ Create Team Member
             {% else %}
-                Create Client Account
+                🔑 Create an Account
             {% endif %}
         </h5>
 
@@ -86,7 +81,6 @@
                 <input type="email" name="email" class="form-control" placeholder="Email" required>
             </div>
             
-            <!-- Added Phone Field to match your auth.py -->
             <div class="mb-3">
                 <label class="form-label" style="color:#4B5563; font-weight:600; font-size:0.8rem;">PHONE NUMBER</label>
                 <input type="text" name="phone" class="form-control" placeholder="Optional">
@@ -98,11 +92,11 @@
             </div>
 
             <!-- 🚨 ADMIN ONLY: Role Selection Dropdown -->
-            {% if current_user.is_authenticated and current_user.is_admin and not is_first_user %}
+            {% if current_user.is_authenticated and current_user.is_admin %}
             <div class="mb-4">
                 <label class="form-label" style="color:#4B5563; font-weight:600; font-size:0.8rem;">ASSIGN ROLE</label>
                 <select name="role" class="form-select">
-                    <option value="client">Client (Default)</option>
+                    <option value="client">Client</option>
                     <option value="warehouse">Warehouse Staff</option>
                     <option value="coordinator">Event Coordinator</option>
                     <option value="admin">Administrator</option>
@@ -112,12 +106,10 @@
 
             <!-- 🎛 DYNAMIC BUTTON TEXT -->
             <button type="submit" class="btn-gold">
-                {% if is_first_user %}
-                    Complete System Setup
-                {% elif current_user.is_authenticated and current_user.is_admin %}
+                {% if current_user.is_authenticated and current_user.is_admin %}
                     Add Team Member
                 {% else %}
-                    Sign Up
+                    Create Account
                 {% endif %}
             </button>
         </form>
