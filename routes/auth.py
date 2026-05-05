@@ -13,11 +13,12 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
-    # 1. Traffic Director for ALREADY logged-in users
+    # 1. FIXED TRAFFIC DIRECTOR: Only redirect if they are trying to access /login 
+    # while already logged in. This prevents the dashboard bouncer loop.
     if current_user.is_authenticated:
         if current_user.role == 'client':
-            return redirect("/") # Send clients to the public landing page
-        return redirect(url_for("dashboard.index")) # Send team to the admin dashboard
+            return redirect("/") 
+        return redirect(url_for("dashboard.index"))
     
     if request.method == "POST":
         email = request.form.get("email", "").strip().lower()
@@ -30,15 +31,17 @@ def login():
             db.session.commit()
             flash(f"Welcome back, {user.name}! 👋", "success")
             
+            # 2. Check for manual 'next' argument (e.g., from @login_required)
             nxt = request.args.get("next")
-            if nxt:
-                return redirect(nxt)
-                
-            # 2. Traffic Director for NEWLY logged-in users
+            
+            # If they are a client, ALWAYS send to root, even if 'next' was dashboard
             if user.role == 'client':
-                return redirect("/") # Send clients to the public landing page
-            else:
-                return redirect(url_for("dashboard.index")) # Send team to the admin dashboard
+                return redirect("/")
+            
+            # If they are admin/team, follow 'next' or go to dashboard
+            if nxt and not nxt.startswith('/auth'):
+                return redirect(nxt)
+            return redirect(url_for("dashboard.index"))
             
         flash("Invalid email or password.", "danger")
     return render_template("auth/login.html")
@@ -62,10 +65,10 @@ def register():
     """
     user_count = User.query.count()
 
-    # Prevent already logged-in non-admins (like regular clients) from seeing the register page
+    # Prevent already logged-in non-admins from seeing the register page
     if current_user.is_authenticated and not current_user.is_admin:
         flash("You already have an account.", "info")
-        return redirect("/") # Also send them to the root instead of the dashboard
+        return redirect("/")
 
     if request.method == "POST":
         name  = request.form.get("name", "").strip()
@@ -73,13 +76,12 @@ def register():
         pwd   = request.form.get("password", "")
         phone = request.form.get("phone", "").strip()
         
-        # Determine role based on who is registering
         if user_count == 0:
-            role = "admin" # The very first account in the system is always an admin
+            role = "admin"
         elif current_user.is_authenticated and current_user.is_admin:
-            role = request.form.get("role", "client") # Admin can choose the role from the dropdown
+            role = request.form.get("role", "client")
         else:
-            role = "client" # Public sign-ups are strictly forced to be clients
+            role = "client"
 
         if User.query.filter_by(email=email).first():
             flash("Email already in use.", "warning")
@@ -92,13 +94,11 @@ def register():
             if user_count == 0:
                 flash("Admin account created! You can now log in.", "success")
                 return redirect(url_for("auth.login"))
-            
             elif current_user.is_authenticated and current_user.is_admin:
                 flash(f"Team member '{name}' created as {role.title()}.", "success")
                 return redirect(url_for("auth.users_list"))
-            
             else:
-                flash("Client account created successfully! You can now log in to your portal.", "success")
+                flash("Account created successfully! You can now log in.", "success")
                 return redirect(url_for("auth.login"))
             
     return render_template("auth/register.html", is_first_user=(user_count == 0))
@@ -109,7 +109,7 @@ def register():
 def users_list():
     if not current_user.is_admin:
         flash("Access denied.", "danger")
-        return redirect("/") # Redirect unauthorized users to root
+        return redirect("/")
     users = User.query.order_by(User.name).all()
     return render_template("auth/users.html", users=users)
 
@@ -131,10 +131,6 @@ def profile():
 @auth_bp.route("/users/<int:user_id>/promote", methods=["POST"])
 @login_required
 def promote_user(user_id):
-    """
-    Allows an admin to change the role of any user (e.g., promote a client to admin).
-    """
-    # Security: Only admins can change roles
     if not current_user.is_admin:
         flash("Access denied.", "danger")
         return redirect("/")
@@ -142,17 +138,15 @@ def promote_user(user_id):
     user = User.query.get_or_404(user_id)
     new_role = request.form.get("role")
     
-    # Prevent the admin from accidentally demoting themselves and getting locked out
     if user.id == current_user.id and new_role != "admin":
         flash("You cannot demote your own admin account.", "warning")
         return redirect(url_for("auth.users_list"))
         
-    # Update the role safely
     valid_roles = ["client", "warehouse", "coordinator", "admin"]
     if new_role in valid_roles:
         user.role = new_role
         db.session.commit()
-        flash(f"Account for {user.name} successfully updated to {new_role.title()}.", "success")
+        flash(f"Account for {user.name} updated to {new_role.title()}.", "success")
     else:
         flash("Invalid role selected.", "danger")
         
