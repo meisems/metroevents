@@ -1,6 +1,6 @@
 """
 Metro Events — Auth Routes
-Login, logout, register (admin only), profile.
+Login, logout, register (public clients & admin team creation), profile.
 """
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_user, logout_user, login_required, current_user
@@ -45,16 +45,16 @@ def logout():
 def register():
     """
     Registration Logic:
-    1. If DB is empty, allow first user to register as Admin.
-    2. If DB has users, require current_user to be Admin.
+    1. If DB is empty, allow the first user to register as Admin.
+    2. If logged in as Admin, allow creating team accounts with specific roles.
+    3. If public (not logged in), allow creating a basic 'client' account.
     """
     user_count = User.query.count()
 
-    # If users exist, enforce security
-    if user_count > 0:
-        if not current_user.is_authenticated or not current_user.is_admin:
-            flash("Only admins can create new users.", "danger")
-            return redirect(url_for("dashboard.index"))
+    # Prevent already logged-in non-admins (like regular clients) from seeing the register page
+    if current_user.is_authenticated and not current_user.is_admin:
+        flash("You already have an account.", "info")
+        return redirect(url_for("dashboard.index"))
 
     if request.method == "POST":
         name  = request.form.get("name", "").strip()
@@ -62,11 +62,13 @@ def register():
         pwd   = request.form.get("password", "")
         phone = request.form.get("phone", "").strip()
         
-        # Determine role: force admin for user #1, else check form
+        # Determine role based on who is registering
         if user_count == 0:
-            role = "admin"
+            role = "admin" # The very first account in the system is always an admin
+        elif current_user.is_authenticated and current_user.is_admin:
+            role = request.form.get("role", "client") # Admin can choose the role from the dropdown
         else:
-            role = request.form.get("role", "coordinator")
+            role = "client" # Public sign-ups are strictly forced to be clients
 
         if User.query.filter_by(email=email).first():
             flash("Email already in use.", "warning")
@@ -80,10 +82,14 @@ def register():
                 flash("Admin account created! You can now log in.", "success")
                 return redirect(url_for("auth.login"))
             
-            flash(f"User {name} created successfully.", "success")
-            return redirect(url_for("auth.users_list"))
+            elif current_user.is_authenticated and current_user.is_admin:
+                flash(f"Team member '{name}' created as {role|title}.", "success")
+                return redirect(url_for("auth.users_list"))
             
-    # CRITICAL: This ensures the page renders on GET requests
+            else:
+                flash("Client account created successfully! You can now log in to your portal.", "success")
+                return redirect(url_for("auth.login"))
+            
     return render_template("auth/register.html", is_first_user=(user_count == 0))
 
 
