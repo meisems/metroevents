@@ -2,7 +2,7 @@
 Metro Events — Dashboard Route
 Aggregates KPIs, upcoming events, overdue tasks & payments.
 """
-from flask import Blueprint, render_template, redirect, flash
+from flask import Blueprint, render_template, redirect, flash, url_for
 from flask_login import login_required, current_user
 from database import db
 from models.event import Event
@@ -19,9 +19,10 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @login_required
 def index():
     # 🚨 THE BOUNCER: Kick clients back to the public landing page
+    # We check the role immediately to prevent unauthorized access.
     if current_user.role == 'client':
-        flash("You do not have permission to view the admin dashboard.", "warning")
-        return redirect("/")
+        flash("Please use the Client Portal to manage your events.", "info")
+        return redirect(url_for('main.index')) # Ensure this points to your public home route
 
     today = date.today()
     upcoming_days = today + timedelta(days=30)
