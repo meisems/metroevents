@@ -34,6 +34,8 @@
       </div>
     </div>
 
+    <!-- 🚨 THE BOUNCER: Hides internal navigation from Client accounts -->
+    {% if current_user.role != 'client' %}
     <nav class="me-nav">
       <div class="me-nav-section">Main</div>
       <a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.endpoint == 'dashboard.index' }}">
@@ -64,7 +66,9 @@
       </a>
       {% endif %}
     </nav>
+    {% endif %}
 
+    <!-- Footer remains visible so Clients can still Log Out or view their Profile -->
     <div class="me-sidebar-footer">
       <a href="{{ url_for('auth.profile') }}"><span>⚙️</span> Profile</a>
       <a href="{{ url_for('auth.logout') }}"><span>🚪</span> Logout</a>
