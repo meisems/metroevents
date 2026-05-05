@@ -4,7 +4,17 @@
 {% block auth_content %}
 <div style="min-height:100vh;background:linear-gradient(135deg,#1A1A2E 0%,#16213E 50%,#0F3460 100%);
      display:flex;align-items:center;justify-content:center;padding:20px;">
+  
   <div style="width:100%;max-width:400px;">
+    
+    <!-- 🔙 THE NEW BACK BUTTON (Placed outside the card for better visibility) -->
+    <div class="mb-4 text-center">
+        <a href="/" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem; font-weight: 500; transition: color 0.2s;"
+           onmouseover="this.style.color='#fff'" 
+           onmouseout="this.style.color='rgba(255,255,255,0.7)'">
+            ← Back to Home
+        </a>
+    </div>
 
     <!-- Logo and Header -->
     <div class="text-center mb-4">
@@ -13,18 +23,8 @@
     </div>
 
     <!-- Login Card -->
-    <div style="background:#fff;border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.4); position: relative;">
+    <div style="background:#fff;border-radius:16px;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
       
-      <!-- 🔙 THE NEW BACK BUTTON -->
-      <div class="text-start mb-3">
-          <a href="{{ url_for('dashboard.index') }}" 
-             style="color: #8896A5; text-decoration: none; font-size: 0.85rem; font-weight: 600; transition: color 0.2s;" 
-             onmouseover="this.style.color='#1A1A2E'" 
-             onmouseout="this.style.color='#8896A5'">
-              ← Back to Dashboard
-          </a>
-      </div>
-
       <h5 style="font-weight:800;color:#1A1A2E;margin-bottom:22px;text-align:center;">Welcome back 👋</h5>
 
       {% with messages = get_flashed_messages(with_categories=true) %}
