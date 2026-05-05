@@ -18,11 +18,12 @@ dashboard_bp = Blueprint("dashboard", __name__)
 @dashboard_bp.route("/dashboard")
 @login_required
 def index():
-    # 🚨 THE BOUNCER: Kick clients back to the public landing page.
     if current_user.role == 'client':
         flash("Welcome to your portal!", "info")
-        # FIXED: Points to 'public.index' to match your app.py registration
+        # Ensure this is 'public.index'
         return redirect(url_for('public.index')) 
+    
+    # ... rest of your code
 
     # ... rest of your dashboard code ...
 
