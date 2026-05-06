@@ -12,6 +12,7 @@ from models.payment import Payment, PAYMENT_TYPES, PAYMENT_STATUSES
 from models.moodboard import MoodboardPeg, PEG_CATEGORIES
 from models.supplier import Supplier, PurchaseOrder
 from models.inventory import InventoryItem, Reservation  # 🟢 Added Reservation import
+from models.task import Task  # Add this near your other model imports
 from datetime import datetime
 import os, uuid
 from werkzeug.utils import secure_filename
@@ -324,3 +325,51 @@ def add_po(event_id):
     db.session.commit()
     flash("Purchase order added.", "success")
     return redirect(url_for("events.detail", event_id=event_id, tab="suppliers"))
+
+# ─── CREW TASKS ────────────────────────────────────────────────────────────
+
+@events_bp.route("/<int:event_id>/tasks/add", methods=["POST"])
+@login_required
+def add_task(event_id):
+    event = Event.query.get_or_404(event_id)
+    
+    title = request.form.get("title", "").strip()
+    assigned_to = request.form.get("assigned_to")
+    due_date_raw = request.form.get("due_date")
+
+    if not title:
+        flash("Task title is required.", "danger")
+        return redirect(url_for('events.detail', event_id=event.id, tab='tasks'))
+
+    new_task = Task(event_id=event.id, title=title, is_done=False)
+    
+    if assigned_to:
+        new_task.assigned_to = int(assigned_to)
+        
+    if due_date_raw:
+        try:
+            new_task.due_date = datetime.strptime(due_date_raw, "%Y-%m-%d").date()
+        except ValueError:
+            pass
+
+    db.session.add(new_task)
+    db.session.commit()
+    flash("Task assigned successfully! 📌", "success")
+    return redirect(url_for('events.detail', event_id=event.id, tab='tasks'))
+
+@events_bp.route("/<int:event_id>/tasks/<int:task_id>/toggle", methods=["POST"])
+@login_required
+def toggle_task(event_id, task_id):
+    task = Task.query.get_or_404(task_id)
+    task.is_done = not task.is_done  # Flips True to False, or False to True
+    db.session.commit()
+    return redirect(url_for('events.detail', event_id=event_id, tab='tasks'))
+
+@events_bp.route("/<int:event_id>/tasks/<int:task_id>/delete", methods=["POST"])
+@login_required
+def delete_task(event_id, task_id):
+    task = Task.query.get_or_404(task_id)
+    db.session.delete(task)
+    db.session.commit()
+    flash("Task removed.", "warning")
+    return redirect(url_for('events.detail', event_id=event_id, tab='tasks'))
