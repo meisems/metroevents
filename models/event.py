@@ -143,3 +143,16 @@ class Event(db.Model):
 
     def __repr__(self):
         return f"<Event '{self.event_id}' - '{self.name}'>"
+
+# ── NEW: Checklist Item Model ─────────────────────────────────
+class ChecklistItem(db.Model):
+    __tablename__ = "checklist_items"
+
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey("events.id"), nullable=False)
+    title = db.Column(db.String(255), nullable=False)
+    is_done = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Establish the reverse relationship back to the Event
+    event = db.relationship("Event", back_populates="checklist_items")
