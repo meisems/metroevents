@@ -11,6 +11,7 @@ from models.user import User
 from models.payment import Payment, PAYMENT_TYPES, PAYMENT_STATUSES
 from models.moodboard import MoodboardPeg, PEG_CATEGORIES
 from models.supplier import Supplier, PurchaseOrder
+from models.inventory import InventoryItem, Reservation  # 🟢 Added Reservation import
 from datetime import datetime
 import os, uuid
 from werkzeug.utils import secure_filename
@@ -35,16 +36,16 @@ def save_upload(file):
     return None
 
 def _populate_event(evt, form):
-    evt.name             = form.get("name", "").strip()
-    evt.event_type       = form.get("event_type", "wedding")
-    evt.status           = form.get("status", "planning")
-    evt.venue_name       = form.get("venue_name", "").strip()
-    evt.venue_address    = form.get("venue_address", "").strip()
-    evt.package_name     = form.get("package_name", "").strip()
-    evt.color_palette    = form.get("color_palette", "").strip()
-    evt.team_notes       = form.get("team_notes", "").strip()
-    evt.internal_notes   = form.get("internal_notes", "").strip()
-    evt.total_budget     = float(form.get("total_budget") or 0)
+    evt.name               = form.get("name", "").strip()
+    evt.event_type         = form.get("event_type", "wedding")
+    evt.status             = form.get("status", "planning")
+    evt.venue_name         = form.get("venue_name", "").strip()
+    evt.venue_address      = form.get("venue_address", "").strip()
+    evt.package_name       = form.get("package_name", "").strip()
+    evt.color_palette      = form.get("color_palette", "").strip()
+    evt.team_notes         = form.get("team_notes", "").strip()
+    evt.internal_notes     = form.get("internal_notes", "").strip()
+    evt.total_budget       = float(form.get("total_budget") or 0)
 
     raw_date = form.get("event_date")
     if raw_date:
@@ -75,7 +76,6 @@ def _populate_event(evt, form):
 @events_bp.route("/")
 @login_required
 def list_events():
-    # FIXED: Added pagination logic to replace .all()
     page = request.args.get('page', 1, type=int)
     events = Event.query.order_by(Event.event_date.asc()).paginate(page=page, per_page=10)
     return render_template("events/list.html", events=events, statuses=EVENT_STATUSES)
@@ -89,13 +89,9 @@ def new_event():
     if request.method == "POST":
         e = Event()
         _populate_event(e, request.form)
-
-        # Assign the unique ID (e.g., EVT-X4Y7Z9)
         e.event_id = Event.generate_unique_id()
-
         db.session.add(e)
         db.session.commit()
-
         flash(f"Event '{e.name}' created with ID {e.event_id}! ⚡", "success")
         return redirect(url_for("events.detail", event_id=e.id))
 
@@ -120,6 +116,9 @@ def detail(event_id):
     tab   = request.args.get("tab", "overview")
     suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.company_name).all()
     all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
+    
+    # Fetch available inventory items for the reservation modal
+    inventory_items = InventoryItem.query.filter_by(is_active=True).order_by(InventoryItem.name).all()
 
     return render_template("events/detail.html",
         event=event,
@@ -130,6 +129,7 @@ def detail(event_id):
         payment_statuses=PAYMENT_STATUSES,
         suppliers=suppliers,
         all_users=all_users,
+        inventory_items=inventory_items
     )
 
 
@@ -250,6 +250,47 @@ def add_peg(event_id):
     db.session.commit()
     flash("Peg added to moodboard!", "success")
     return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
+
+@events_bp.route("/<int:event_id>/pegs/<int:peg_id>/delete", methods=["POST"])
+@login_required
+def delete_peg(event_id, peg_id):
+    peg = MoodboardPeg.query.get_or_404(peg_id)
+    db.session.delete(peg)
+    db.session.commit()
+    flash("Peg removed.", "info")
+    return redirect(url_for("events.detail", event_id=event_id, tab="moodboard"))
+
+
+# ─── INVENTORY RESERVATIONS ────────────────────────────────────────────────
+
+@events_bp.route("/<int:event_id>/inventory/reserve", methods=["POST"])
+@login_required
+def reserve_item(event_id):
+    item_id = request.form.get("item_id")
+    qty = int(request.form.get("quantity") or 1)
+    
+    item = InventoryItem.query.get_or_404(item_id)
+    
+    new_res = Reservation(
+        event_id=event_id,
+        item_id=item_id,
+        quantity=qty,
+        status="reserved"
+    )
+    
+    db.session.add(new_res)
+    db.session.commit()
+    flash(f"Reserved {qty}x {item.name}! 📦", "success")
+    return redirect(url_for('events.detail', event_id=event_id, tab='inventory'))
+
+@events_bp.route("/<int:event_id>/inventory/<int:res_id>/delete", methods=["POST"])
+@login_required
+def delete_reservation(event_id, res_id):
+    res = Reservation.query.get_or_404(res_id)
+    db.session.delete(res)
+    db.session.commit()
+    flash("Reservation cancelled.", "warning")
+    return redirect(url_for("events.detail", event_id=event_id, tab="inventory"))
 
 
 # ─── SUPPLIERS & POs ───────────────────────────────────────────────────────
