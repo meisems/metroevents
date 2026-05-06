@@ -205,3 +205,22 @@ def upload_proof(po_id):
     else:
         flash("No valid file uploaded.", "warning")
     return redirect(url_for("suppliers.detail", supplier_id=po.supplier_id))
+
+# ─── DELETE SUPPLIER (ADMIN ONLY) ─────────────────────────────────────────
+
+@suppliers_bp.route("/<int:supplier_id>/delete", methods=["POST"])
+@login_required
+def delete_supplier(supplier_id):
+    # 🟢 Security Check: Kick them out if they aren't an admin
+    if not current_user.is_admin:
+        flash("Access Denied: Only admins can delete suppliers.", "danger")
+        return redirect(url_for("suppliers.list_suppliers"))
+        
+    supplier = Supplier.query.get_or_404(supplier_id)
+    company_name = supplier.company_name
+    
+    db.session.delete(supplier)
+    db.session.commit()
+    
+    flash(f"Supplier '{company_name}' has been permanently deleted.", "warning")
+    return redirect(url_for("suppliers.list_suppliers"))
