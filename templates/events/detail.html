@@ -400,26 +400,54 @@
 
 {# =================== 🤝 SUPPLIERS =================== #}
 {% elif tab == 'suppliers' %}
-<h5 class="mb-3">🤝 Suppliers & Purchase Orders</h5>
-<div class="me-card p-4 text-center">Supplier PO Workspace is ready.</div>
-
-{# =================== 💸 PAYMENTS =================== #}
-{% elif tab == 'payments' %}
-<div class="d-flex justify-content-between mb-3">
-    <h5>💸 Payment History</h5>
-    <!-- 🟢 Updated to Modal Trigger -->
-    <button class="btn-gold" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">➕ Record Payment</button>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">🤝 Suppliers & Purchase Orders</h5>
+    <button class="btn-gold" data-bs-toggle="modal" data-bs-target="#addPoModal">
+        ➕ Create PO
+    </button>
 </div>
-<table class="me-table bg-white">
-  <thead><tr><th>Label</th><th>Amount</th><th>Status</th></tr></thead>
-  {% for p in event.payments.all() %}
-  <tr>
-    <td>{{ p.label }}</td>
-    <td>{{ p.amount|peso }}</td>
-    <td><span class="badge bg-{{ p.status_color }}">{{ p.status|title }}</span></td>
-  </tr>
-  {% else %}<tr><td colspan="3" class="text-center py-4">No payments recorded.</td></tr>{% endfor %}
-</table>
+
+<div class="me-card p-0 shadow-sm border-0">
+  <table class="me-table mb-0 bg-white">
+    <thead>
+      <tr>
+        <th>PO Number</th>
+        <th>Supplier</th>
+        <th>Description</th>
+        <th>Amount</th>
+        <th>Delivery Date</th>
+        <th class="text-center">Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for po in event.purchase_orders %}
+      <tr>
+        <td class="fw-bold">{{ po.po_number or 'N/A' }}</td>
+        <td>
+            <span class="badge bg-light text-dark border">
+                🏢 {{ po.supplier.company_name if po.supplier else 'Unknown' }}
+            </span>
+        </td>
+        <td><span class="text-muted small">{{ po.description }}</span></td>
+        <td class="text-success fw-bold">{{ po.amount|peso }}</td>
+        <td>
+            <span class="text-muted small">
+                {{ po.delivery_date.strftime('%b %d, %Y') if po.delivery_date else 'TBD' }}
+                {% if po.delivery_time_window %}<br>({{ po.delivery_time_window }}){% endif %}
+            </span>
+        </td>
+        <td class="text-center">
+            <span class="badge bg-light text-dark border">{{ po.status|title }}</span>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center py-5 text-muted">No purchase orders created yet.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 
 {# =================== 📝 EVENT DAY LOG =================== #}
 {% elif tab == 'event_log' %}
