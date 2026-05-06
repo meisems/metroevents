@@ -7,7 +7,8 @@ from flask_login import login_required, current_user
 from database import db
 
 # 🟢 FIXED: ChecklistItem is now imported from models.event
-from models.event import Event, EVENT_TYPES, EVENT_STATUSES, ChecklistItem
+from models.event import Event, EVENT_TYPES, EVENT_STATUSES
+from models.checklist import ChecklistItem
 from models.client import Client
 from models.user import User
 from models.payment import Payment, PAYMENT_TYPES, PAYMENT_STATUSES
