@@ -194,12 +194,72 @@
 
 {# =================== 📦 INVENTORY =================== #}
 {% elif tab == 'inventory' %}
-<h5 class="mb-3">📦 Item Reservations</h5>
-<table class="me-table bg-white">
-  <thead><tr><th>Item</th><th>Qty</th><th>Status</th></tr></thead>
-  {% for res in event.reservations.all() %}<tr><td>{{ res.item.name }}</td><td>{{ res.quantity }}</td><td>{{ res.status }}</td></tr>
-  {% else %}<tr><td colspan="3" class="text-center py-4">No items reserved.</td></tr>{% endfor %}
-</table>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">📦 Item Reservations</h5>
+    <!-- 🟢 This button triggers the modal -->
+    <button class="btn-gold" data-bs-toggle="modal" data-bs-target="#reserveItemModal">
+        ➕ Reserve Item
+    </button>
+</div>
+
+<div class="me-card me-card-body p-0 shadow-sm">
+    <table class="me-table mb-0 bg-white">
+      <thead>
+          <tr>
+              <th>Item</th>
+              <th class="text-center">Qty</th>
+              <th>Status</th>
+          </tr>
+      </thead>
+      <tbody>
+      {% for res in event.reservations %}
+        <tr>
+            <td class="fw-bold">{{ res.item.name if res.item else 'Unknown Item' }}</td>
+            <td class="text-center">{{ res.quantity }}</td>
+            <td><span class="badge bg-light text-dark border">{{ res.status|title }}</span></td>
+        </tr>
+      {% else %}
+        <tr>
+            <td colspan="3" class="text-center py-5 text-muted">No items reserved for this event yet.</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+</div>
+
+<!-- 📦 RESERVE ITEM MODAL -->
+<div class="modal fade" id="reserveItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow" style="border-radius: 15px;">
+      <div class="modal-header border-0 p-4 pb-0">
+        <h5 class="fw-bold">📦 Reserve Inventory Item</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('events.reserve_item', event_id=event.id) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="me-form-label small fw-bold text-uppercase text-muted">Select Item</label>
+            <select name="item_id" class="form-select border-0 bg-light" style="padding: 12px; border-radius: 10px;" required>
+              <option value="" disabled selected>Choose from inventory...</option>
+              {% for item in inventory_items %}
+                <option value="{{ item.id }}">{{ item.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-0">
+            <label class="me-form-label small fw-bold text-uppercase text-muted">Quantity to Reserve</label>
+            <input type="number" name="quantity" class="form-control border-0 bg-light" value="1" min="1" required style="padding: 12px; border-radius: 10px;">
+          </div>
+        </div>
+        <div class="modal-footer border-0 p-4 pt-0">
+          <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-gold px-4">Confirm Reservation ⚡</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 {# =================== 🤝 SUPPLIERS =================== #}
 {% elif tab == 'suppliers' %}
