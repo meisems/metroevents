@@ -1,86 +1,106 @@
 {% extends "base.html" %}
 {% block title %}Supplier Hub — Metro Events{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>🏭 Supplier Hub</h2>
-  <a href="{{ url_for('suppliers.new_supplier') }}" class="btn btn-primary">
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">🤝 Supplier Hub</h2>
+  <a href="{{ url_for('suppliers.new_supplier') }}" class="btn-gold">
     ➕ Add Supplier
   </a>
 </div>
 
-<!-- Filters -->
-<form class="row g-2 mb-3" method="get">
-  <div class="col-auto">
-    <input type="text" name="q" class="form-control" placeholder="Search supplier…"
-           value="{{ search }}">
-  </div>
-  <div class="col-auto">
-    <select name="cat" class="form-select">
-      <option value="">All Categories</option>
-      {% for cat in categories %}
-        <option value="{{ cat }}" {% if cat == cat_filter %}selected{% endif %}>
-          {{ cat }}
-        </option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="col-auto">
-    <div class="form-check mt-2">
-      <input class="form-check-input" type="checkbox" name="preferred" value="1"
-             id="chkPreferred" {% if preferred_only %}checked{% endif %}>
-      <label class="form-check-label" for="chkPreferred">⭐ Preferred only</label>
+<div class="me-card me-card-body shadow-sm border-0 mb-4 p-3 bg-white">
+  <form class="row g-2 align-items-center" method="get">
+    <div class="col-md-4">
+      <input type="text" name="q" class="form-control bg-light border-0" placeholder="Search supplier…" value="{{ search }}" style="padding: 10px; border-radius: 8px;">
     </div>
-  </div>
-  <div class="col-auto">
-    <button class="btn btn-outline-secondary">Filter</button>
-  </div>
-</form>
+    <div class="col-md-3">
+      <select name="cat" class="form-select bg-light border-0" style="padding: 10px; border-radius: 8px;">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+          <option value="{{ cat }}" {% if cat == cat_filter %}selected{% endif %}>{{ cat }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-3">
+      <div class="form-check form-switch pt-1">
+        <input class="form-check-input" type="checkbox" name="preferred" value="1" id="chkPreferred" {% if preferred_only %}checked{% endif %} style="cursor: pointer;">
+        <label class="form-check-label text-muted fw-bold small text-uppercase mt-1" for="chkPreferred" style="cursor: pointer;">⭐ Preferred Only</label>
+      </div>
+    </div>
+    <div class="col-md-2 text-end">
+      <button class="btn btn-dark w-100" style="padding: 10px; border-radius: 8px; font-weight: 600;">Filter</button>
+    </div>
+  </form>
+</div>
 
 <div class="row g-3">
   {% for supplier in suppliers.items %}
-  <div class="col-md-4">
-    <div class="card h-100 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex justify-content-between">
-          <h6 class="card-title mb-1">
+  <div class="col-md-6 col-lg-4">
+    <div class="me-card h-100 shadow-sm border-0 d-flex flex-column">
+      <div class="p-4 flex-grow-1">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <h5 class="fw-bold mb-0 text-dark">
             {{ supplier.company_name }}
-            {% if supplier.is_preferred %}<span class="badge bg-warning text-dark">⭐ Preferred</span>{% endif %}
-          </h6>
-          <small class="text-muted">{{ supplier.category }}</small>
+          </h5>
+          {% if supplier.is_preferred %}
+            <span class="badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a;">⭐ Preferred</span>
+          {% endif %}
         </div>
-        <p class="text-muted small mb-1">{{ supplier.contact_person or '—' }}</p>
-        <p class="text-muted small mb-2">{{ supplier.phone or '—' }}</p>
-        <div class="d-flex gap-2 align-items-center">
-          <span class="badge bg-{% if supplier.reliability_pct >= 90 %}success{% elif supplier.reliability_pct >= 70 %}warning{% else %}danger{% endif %}">
-            {{ supplier.reliability_pct }}% on-time
+        
+        <span class="badge bg-light text-dark border mb-3">{{ supplier.category }}</span>
+        
+        <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+          <span>👤</span> {{ supplier.contact_person or 'No contact person' }}
+        </div>
+        <div class="d-flex align-items-center gap-2 mb-3 text-muted small">
+          <span>📞</span> {{ supplier.phone or 'No phone provided' }}
+        </div>
+
+        <div class="d-flex gap-2 align-items-center p-2 rounded bg-light border">
+          <span class="badge bg-{{ 'success' if supplier.reliability_pct >= 90 else 'warning' if supplier.reliability_pct >= 70 else 'danger' }}">
+            {{ supplier.reliability_pct }}% On-Time
           </span>
-          <span class="text-warning">{{ '★' * (supplier.rating | int) }}</span>
+          <span class="text-warning fs-6" style="letter-spacing: 2px;">{{ '★' * (supplier.rating | int) }}<span class="text-muted opacity-25">{{ '★' * (5 - (supplier.rating | int)) }}</span></span>
         </div>
       </div>
-      <div class="card-footer bg-transparent">
-        <a href="{{ url_for('suppliers.detail', supplier_id=supplier.id) }}"
-           class="btn btn-sm btn-outline-primary">View</a>
+      
+      <div class="p-3 border-top bg-light text-center" style="border-radius: 0 0 15px 15px;">
+        <a href="{{ url_for('suppliers.detail', supplier_id=supplier.id) }}" class="btn-outline-gold w-100 d-block" style="text-decoration: none;">View Profile & POs</a>
+        
+        {% if current_user.is_admin %}
+        <form action="{{ url_for('suppliers.delete_supplier', supplier_id=supplier.id) }}" method="POST" class="mt-2 mb-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-sm btn-outline-danger w-100" style="border-radius: 8px;" onclick="return confirm('🚨 Are you sure you want to permanently delete {{ supplier.company_name|escape }}? This will also delete all their Purchase Orders.');">
+                🗑 Delete Supplier
+            </button>
+        </form>
+        {% endif %}
+        
       </div>
     </div>
   </div>
   {% else %}
   <div class="col-12">
-    <div class="alert alert-info">No suppliers found. <a href="{{ url_for('suppliers.new_supplier') }}">Add your first supplier.</a></div>
+    <div class="text-center py-5 bg-white rounded shadow-sm border-0">
+      <div style="font-size: 3rem; opacity: 0.5;">🤝</div>
+      <h5 class="mt-3 text-muted">No suppliers found.</h5>
+      <a href="{{ url_for('suppliers.new_supplier') }}" class="btn-gold mt-2">Add your first supplier</a>
+    </div>
   </div>
   {% endfor %}
 </div>
 
-<!-- Pagination -->
 {% if suppliers.pages > 1 %}
-<nav class="mt-3">
-  <ul class="pagination">
+<nav class="mt-4 d-flex justify-content-center">
+  <ul class="pagination shadow-sm" style="border-radius: 10px; overflow: hidden;">
     {% for p in suppliers.iter_pages() %}
       {% if p %}
         <li class="page-item {% if p == suppliers.page %}active{% endif %}">
-          <a class="page-link" href="?page={{ p }}&q={{ search }}&cat={{ cat_filter }}">{{ p }}</a>
+          <a class="page-link border-0 text-dark {% if p == suppliers.page %}bg-dark text-white fw-bold{% endif %}" href="?page={{ p }}&q={{ search }}&cat={{ cat_filter }}">{{ p }}</a>
         </li>
       {% else %}
-        <li class="page-item disabled"><span class="page-link">…</span></li>
+        <li class="page-item disabled"><span class="page-link border-0 text-muted bg-light">…</span></li>
       {% endif %}
     {% endfor %}
   </ul>
