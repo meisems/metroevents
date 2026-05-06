@@ -36,13 +36,11 @@
 
     <nav class="me-nav">
       {% if current_user.role == 'client' %}
-        <!-- 🟢 CLIENT NAVIGATION: Always gives them a way back home -->
         <div class="me-nav-section">Portal</div>
         <a href="{{ url_for('public.index') }}">
           <span class="nav-icon">🌐</span> Back to Website
         </a>
       {% else %}
-        <!-- 🔐 INTERNAL TEAM NAVIGATION -->
         <div class="me-nav-section">Main</div>
         <a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.endpoint == 'dashboard.index' }}">
           <span class="nav-icon">🏠</span> Dashboard
@@ -60,6 +58,9 @@
         </a>
         <a href="{{ url_for('meetings.index') }}" class="{{ 'active' if request.blueprint == 'meetings' }}">
           <span class="nav-icon">📅</span> Meeting Schedules
+        </a>
+        <a href="{{ url_for('suppliers.list_suppliers') }}" class="{{ 'active' if request.blueprint == 'suppliers' }}">
+          <span class="nav-icon">🤝</span> Suppliers Directory
         </a>
 
         {% if current_user.is_admin %}
@@ -91,7 +92,6 @@
       </div>
       
       <div class="d-flex align-items-center gap-2">
-        <!-- 🟢 GLOBAL ACTION: Show "Back to Website" for Clients in the Header -->
         {% if current_user.role == 'client' %}
           <a href="{{ url_for('public.index') }}" class="btn btn-sm btn-gold d-none d-sm-inline-block">
             <span class="me-1">🏠</span> Website Home
