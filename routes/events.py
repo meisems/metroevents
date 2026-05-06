@@ -272,22 +272,26 @@ def delete_peg(event_id, peg_id):
 @events_bp.route("/<int:event_id>/inventory/reserve", methods=["POST"])
 @login_required
 def reserve_item(event_id):
+    # 🟢 1. Fetch the actual event first so we know what date it is
+    event = Event.query.get_or_404(event_id)
+    
     item_id = request.form.get("item_id")
     qty = int(request.form.get("quantity") or 1)
     
     item = InventoryItem.query.get_or_404(item_id)
     
     new_res = Reservation(
-        event_id=event_id,
+        event_id=event.id,
         item_id=item_id,
         quantity=qty,
-        status="reserved"
+        status="reserved",
+        event_date=event.event_date  # 🟢 2. Give the database the required date!
     )
     
     db.session.add(new_res)
     db.session.commit()
     flash(f"Reserved {qty}x {item.name}! 📦", "success")
-    return redirect(url_for('events.detail', event_id=event_id, tab='inventory'))
+    return redirect(url_for('events.detail', event_id=event.id, tab='inventory'))
 
 @events_bp.route("/<int:event_id>/inventory/<int:res_id>/delete", methods=["POST"])
 @login_required
