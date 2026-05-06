@@ -80,6 +80,7 @@ class PurchaseOrder(db.Model):
 
     # ── Relationships ─────────────────────────────────────────
     supplier = db.relationship("Supplier", back_populates="purchase_orders")
+    event = db.relationship("Event", back_populates="purchase_orders")
 
     def mark_delivered(self, on_time: bool, notes: str = None):
         self.actual_delivery_at = datetime.utcnow()
