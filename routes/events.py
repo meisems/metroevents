@@ -5,14 +5,17 @@ One Event = One Workspace (tabbed detail view).
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from database import db
-from models.event import Event, EVENT_TYPES, EVENT_STATUSES
+
+# 🟢 FIXED: ChecklistItem is now imported from models.event
+from models.event import Event, EVENT_TYPES, EVENT_STATUSES, ChecklistItem
 from models.client import Client
 from models.user import User
 from models.payment import Payment, PAYMENT_TYPES, PAYMENT_STATUSES
 from models.moodboard import MoodboardPeg, PEG_CATEGORIES
 from models.supplier import Supplier, PurchaseOrder
 from models.inventory import InventoryItem, Reservation  
-from models.task import Task, ChecklistItem  # 🟢 Added ChecklistItem import
+# 🟢 FIXED: Task is now imported alone from models.task
+from models.task import Task  
 
 from datetime import datetime
 import os, uuid
