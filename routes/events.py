@@ -5,14 +5,15 @@ One Event = One Workspace (tabbed detail view).
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from database import db
-from models.event import Event, EVENT_TYPES, EVENT_STATUSES
+from models.event import Event, EVENT_TYPES, EVENT_STATUSES, ChecklistItem  # 🟢 Added ChecklistItem import
 from models.client import Client
 from models.user import User
 from models.payment import Payment, PAYMENT_TYPES, PAYMENT_STATUSES
 from models.moodboard import MoodboardPeg, PEG_CATEGORIES
 from models.supplier import Supplier, PurchaseOrder
-from models.inventory import InventoryItem, Reservation  # 🟢 Added Reservation import
-from models.task import Task  # Add this near your other model imports
+from models.inventory import InventoryItem, Reservation  
+from models.task import Task  
+
 from datetime import datetime
 import os, uuid
 from werkzeug.utils import secure_filename
@@ -373,3 +374,36 @@ def delete_task(event_id, task_id):
     db.session.commit()
     flash("Task removed.", "warning")
     return redirect(url_for('events.detail', event_id=event_id, tab='tasks'))
+
+# ─── CHECKLIST ─────────────────────────────────────────────────────────────
+
+@events_bp.route("/<int:event_id>/checklist/add", methods=["POST"])
+@login_required
+def add_checklist_item(event_id):
+    event = Event.query.get_or_404(event_id)
+    title = request.form.get("title", "").strip()
+    
+    if title:
+        new_item = ChecklistItem(event_id=event.id, title=title, is_done=False)
+        db.session.add(new_item)
+        db.session.commit()
+    else:
+        flash("Item title cannot be empty.", "warning")
+        
+    return redirect(url_for('events.detail', event_id=event.id, tab='checklist'))
+
+@events_bp.route("/<int:event_id>/checklist/<int:item_id>/toggle", methods=["POST"])
+@login_required
+def toggle_checklist_item(event_id, item_id):
+    item = ChecklistItem.query.get_or_404(item_id)
+    item.is_done = not item.is_done # Flips status
+    db.session.commit()
+    return redirect(url_for('events.detail', event_id=event_id, tab='checklist'))
+
+@events_bp.route("/<int:event_id>/checklist/<int:item_id>/delete", methods=["POST"])
+@login_required
+def delete_checklist_item(event_id, item_id):
+    item = ChecklistItem.query.get_or_404(item_id)
+    db.session.delete(item)
+    db.session.commit()
+    return redirect(url_for('events.detail', event_id=event_id, tab='checklist'))
