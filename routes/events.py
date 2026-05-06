@@ -411,3 +411,23 @@ def delete_checklist_item(event_id, item_id):
     db.session.delete(item)
     db.session.commit()
     return redirect(url_for('events.detail', event_id=event_id, tab='checklist'))
+
+@events_bp.route("/seed-suppliers")
+@login_required
+def seed_suppliers():
+    from models.supplier import Supplier
+    
+    # Check if we already have suppliers so we don't make duplicates
+    if Supplier.query.count() == 0:
+        s1 = Supplier(company_name="Juan's Catering Co.", category="Catering", email="juan@catering.com")
+        s2 = Supplier(company_name="City Sounds & Lights", category="Audio/Visual", email="contact@citysounds.com")
+        s3 = Supplier(company_name="Petal & Bloom Florists", category="Florist", email="hello@petalbloom.com")
+        
+        db.session.add_all([s1, s2, s3])
+        db.session.commit()
+        flash("✅ Test suppliers magically added to your database!", "success")
+    else:
+        flash("Suppliers already exist in the database.", "info")
+        
+    # Redirect back to the dashboard or events list
+    return redirect(url_for('dashboard.index'))
