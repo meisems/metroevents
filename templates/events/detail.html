@@ -173,13 +173,53 @@
 
 {# =================== ✅ CHECKLIST =================== #}
 {% elif tab == 'checklist' %}
-<h5 class="mb-3">✅ Event Checklist</h5>
-{% for item in event.checklist_items.all() %}
-<div class="p-3 mb-2 bg-white rounded shadow-sm d-flex justify-content-between">
-  <span>{{ item.title }}</span>
-  <span class="badge {{ 'bg-success' if item.is_done else 'bg-secondary' }}">{{ 'Done' if item.is_done else 'Pending' }}</span>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">✅ Event Checklist</h5>
 </div>
-{% endfor %}
+
+<!-- 🟢 QUICK ADD FORM -->
+<div class="me-card me-card-body shadow-sm mb-4 p-3">
+    <form action="{{ url_for('events.add_checklist_item', event_id=event.id) }}" method="POST" class="d-flex gap-2 m-0">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="text" name="title" class="form-control border-0 bg-light" placeholder="e.g., Finalize catering menu..." required style="padding: 12px; border-radius: 10px;">
+        <button type="submit" class="btn-gold px-4" style="border-radius: 10px; font-weight: 700; white-space: nowrap;">Add Item</button>
+    </form>
+</div>
+
+<!-- 📋 CHECKLIST ITEMS -->
+<div class="d-flex flex-column gap-2">
+    {% for item in event.checklist_items.all() %}
+    <div class="me-card shadow-sm p-3 d-flex justify-content-between align-items-center" style="border-left: 4px solid {{ '#48BB78' if item.is_done else '#C9A84C' }};">
+        
+        <div class="d-flex align-items-center gap-3">
+            <!-- Toggle Checkbox Button -->
+            <form action="{{ url_for('events.toggle_checklist_item', event_id=event.id, item_id=item.id) }}" method="POST" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button type="submit" class="btn btn-sm {{ 'btn-success' if item.is_done else 'btn-light border' }}" style="border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                    {{ '✓' if item.is_done else '' }}
+                </button>
+            </form>
+            
+            <!-- Item Title (Crossed out if done) -->
+            <span class="{{ 'text-decoration-line-through text-muted' if item.is_done else 'fw-bold text-dark' }}" style="font-size: 1.05rem;">
+                {{ item.title }}
+            </span>
+        </div>
+        
+        <!-- Delete Button -->
+        <form action="{{ url_for('events.delete_checklist_item', event_id=event.id, item_id=item.id) }}" method="POST" class="m-0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('Delete this checklist item?');">🗑</button>
+        </form>
+        
+    </div>
+    {% else %}
+    <div class="text-center py-5 bg-white rounded shadow-sm">
+        <div style="font-size: 3rem; opacity: 0.3;">☑️</div>
+        <p class="text-muted mt-2 mb-0">No checklist items yet. Start adding tasks above!</p>
+    </div>
+    {% endfor %}
+</div>
 
 {# =================== 📌 TASKS =================== #}
 {% elif tab == 'tasks' %}
