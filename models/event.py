@@ -77,6 +77,7 @@ class Event(db.Model):
     moodboard_pegs = db.relationship("MoodboardPeg", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
     reservations = db.relationship("Reservation", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
     event_logs = db.relationship("EventLog", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
+    purchase_orders = db.relationship("PurchaseOrder", back_populates="event", lazy="dynamic", cascade="all, delete-orphan")
 
     # ── Static Methods ────────────────────────────────────────
     @staticmethod
