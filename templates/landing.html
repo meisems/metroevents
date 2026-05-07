@@ -629,32 +629,39 @@
       <div class="section-label">Client Love</div>
       <div class="section-title">What Our Clients Say</div>
     </div>
+    
     <div class="row g-4">
+      {% for rev in reviews %}
       <div class="col-12 col-md-6 col-lg-4">
-        <div class="testi-card">
-          <div class="testi-stars">★★★★★</div>
-          <p class="testi-text">"Metro Events made our wedding absolutely magical. Every detail was perfect and our guests couldn't stop talking about it!"</p>
-          <div class="testi-name">Maria & Jose Cruz</div>
-          <div class="testi-event">Wedding · March 2025</div>
+        <div class="testi-card h-100 shadow-sm border-0" style="border-radius: 15px; background: #fff; padding: 30px;">
+          <div class="testi-stars" style="color: var(--gold); margin-bottom: 15px; font-size: 0.9rem;">
+            {% for i in range(rev.rating) %}★{% endfor %}
+          </div>
+          <p class="testi-text" style="font-style: italic; color: var(--text); line-height: 1.7; margin-bottom: 20px;">
+            "{{ rev.comment }}"
+          </p>
+          <div class="testi-name" style="font-weight: 800; color: var(--dark); font-size: 0.9rem;">
+            {{ rev.client.full_name }}
+          </div>
+          <div class="testi-event" style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em;">
+            Verified Client • {{ rev.created_at.strftime('%b %Y') }}
+          </div>
         </div>
       </div>
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="testi-card">
-          <div class="testi-stars">★★★★★</div>
-          <p class="testi-text">"The client portal was so convenient — I could check everything online. The team was professional and very organized!"</p>
-          <div class="testi-name">Angela Reyes</div>
-          <div class="testi-event">Debut · January 2025</div>
-        </div>
+      {% else %}
+      <div class="col-12 text-center py-5">
+        <p class="text-muted">Real stories from our clients will appear here soon. ✨</p>
       </div>
-      <div class="col-12 col-md-6 col-lg-4">
-        <div class="testi-card">
-          <div class="testi-stars">★★★★★</div>
-          <p class="testi-text">"We hired Metro Events for our company's annual gala. The execution was flawless. Already booked them again for next year!"</p>
-          <div class="testi-name">Ramon Villanueva</div>
-          <div class="testi-event">Corporate Gala · Dec 2024</div>
-        </div>
-      </div>
+      {% endfor %}
     </div>
+
+    {% if current_user.is_authenticated %}
+    <div class="text-center mt-5">
+      <button class="btn btn-outline-gold btn-sm px-4" data-bs-toggle="modal" data-bs-target="#reviewModal">
+        🌟 Share Your Experience
+      </button>
+    </div>
+    {% endif %}
   </div>
 </section>
 
@@ -759,6 +766,44 @@
                         placeholder="Tell us more about your dream event..." required></textarea>
           </div>
         </div>
+        <div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow border-0" style="border-radius: 20px; background: #fff;">
+      <div class="modal-header border-0 pb-0 p-4">
+        <h4 class="modal-title fw-bold" style="color: var(--dark);">Share Your Experience</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      
+      <form action="{{ url_for('public.submit_review') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="modal-body p-4">
+            <p class="text-muted small mb-4">We value your feedback! How did we do with your event?</p>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-uppercase">Rating</label>
+                <select name="rating" class="form-select border-0 bg-light p-3" style="border-radius: 10px;" required>
+                    <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                    <option value="4">⭐⭐⭐⭐ (Great)</option>
+                    <option value="3">⭐⭐⭐ (Good)</option>
+                    <option value="2">⭐⭐ (Fair)</option>
+                    <option value="1">⭐ (Poor)</option>
+                </select>
+            </div>
+            
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-uppercase">Your Review</label>
+                <textarea name="comment" class="form-control border-0 bg-light p-3" rows="4" 
+                          placeholder="What did you love about working with Metro Events?" style="border-radius: 10px;" required></textarea>
+            </div>
+        </div>
+        <div class="modal-footer border-0 p-4 pt-0">
+          <button type="button" class="btn btn-light px-4 py-2" style="border-radius: 10px;" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Post Review ✨</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
         <div class="modal-footer border-0 p-4 pt-0">
           <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Submit Request ⚡</button>
         </div>
