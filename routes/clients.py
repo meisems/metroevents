@@ -104,29 +104,17 @@ def advance_stage(client_id):
     return redirect(url_for("clients.detail", client_id=client.id))
 
 
-@clients_bp.route("/<int:client_id>/delete", methods=["POST"])
-@login_required
-def delete_client(client_id):
-    if not current_user.is_admin:
-        flash("Only admins can delete clients.", "danger")
-        return redirect(url_for("clients.list_clients"))
-    client = Client.query.get_or_404(client_id)
-    db.session.delete(client)
-    db.session.commit()
-    flash("Client deleted.", "warning")
-    return redirect(url_for("clients.list_clients"))
-
 # ─── DELETE CLIENT (ADMIN ONLY) ───────────────────────────────────────────
 
 @clients_bp.route("/<int:client_id>/delete", methods=["POST"])
 @login_required
 def delete_client(client_id):
-    # 🟢 Security Check: Kick them out if they aren't an admin
+    # Security Check: Kick them out if they aren't an admin
     if not current_user.is_admin:
         flash("Access Denied: Only admins can delete clients.", "danger")
         return redirect(url_for("clients.list_clients"))
         
-    from models.client import Client  # Import if not already at the top
+    from models.client import Client
     
     client = Client.query.get_or_404(client_id)
     client_name = client.full_name
