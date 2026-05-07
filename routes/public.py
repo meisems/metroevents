@@ -14,10 +14,14 @@ def index():
 @public_bp.route("/submit-request", methods=["POST"])
 @login_required
 def submit_request():
+    # 1. Capture All Form Data
+    phone = request.form.get("phone", "").strip()
+    event_date_raw = request.form.get("event_date")
     package_type = request.form.get("package_type", "Custom")
+    initial_status = request.form.get("initial_status", "new_inquiry")
     client_message = request.form.get("client_message", "").strip()
 
-    # 🟢 1. Find or Create Client (The Duplicate Blocker)
+    # 🟢 STEP 1: Find or Create/Update Client
     email = current_user.email.lower().strip()
     client = Client.query.filter_by(email=email).first()
 
@@ -25,44 +29,41 @@ def submit_request():
         client = Client(
             full_name=current_user.name,
             email=email,
-            phone=current_user.phone or "Not Provided",
+            phone=phone,
             pipeline_stage="new_inquiry"
         )
         db.session.add(client)
-        db.session.flush() 
     else:
-        # Update notes for existing client
-        today_str = datetime.now().strftime("%Y-%m-%d")
-        client.notes = (client.notes or "") + f"\n\n[{today_str}] New Inquiry: {client_message}"
+        # Update existing contact info if they provided a new phone
+        client.phone = phone
+        today = datetime.now().strftime("%Y-%m-%d")
+        client.notes = (client.notes or "") + f"\n\n[{today}] New Request ({initial_status}): {client_message}"
 
-    # 🟢 2. Create the Event (Fixing the 'NotNullViolation' error)
+    db.session.flush() # Secure the client ID
+
+    # 🟢 STEP 2: Create the Event with the filled information
     try:
         new_event = Event(
             client_id=client.id,
             event_id=Event.generate_unique_id(),
             name=f"{package_type} Request - {client.full_name}",
             event_type=package_type.lower(),
-            status="planning",
-            
-            # ✅ THE FIX: We provide a default date to satisfy the NOT NULL constraint.
-            # You can change this to the actual intended date later in the Admin dashboard.
-            event_date=datetime.now().date(), 
-            
-            # Also providing defaults for other potentially strict columns
-            venue_name="TBD (Inquiry Phase)",
-            venue_address="TBD (Inquiry Phase)",
-            total_budget=0.0,
-            team_notes=f"Initial Inquiry: {client_message}"
+            status=initial_status, # Saves the status chosen by the client
+            team_notes=f"CLIENT MESSAGE: {client_message}",
+            total_budget=0.0
         )
-        
+
+        # Convert the date string to a Python date object
+        if event_date_raw:
+            new_event.event_date = datetime.strptime(event_date_raw, "%Y-%m-%d").date()
+
         db.session.add(new_event)
         db.session.commit()
-        flash("⚡ Request sent! Our team will contact you soon.", "success")
+        flash("⚡ Thank you! Your request has been received and our team will contact you.", "success")
         
     except Exception as e:
         db.session.rollback()
-        # This will now print any NEW missing fields to your Render logs
-        print(f"CRITICAL DATABASE ERROR: {str(e)}") 
-        flash("We encountered a database error. Our team has been notified.", "danger")
+        print(f"SUBMISSION ERROR: {str(e)}")
+        flash("Error saving your request. Please check the date format.", "danger")
 
     return redirect(url_for("public.index"))
