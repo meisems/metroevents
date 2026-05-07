@@ -452,7 +452,7 @@
             <li>4-hour coverage</li>
             <li>Event timeline planning</li>
           </ul>
-          <a href="{{ url_for('auth.register') }}" class="btn-pkg">Book Now</a>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#orderRequestModal" class="btn-pkg">Book Now</a>
         </div>
       </div>
       <div class="col-12 col-md-6 col-lg-3">
@@ -469,7 +469,7 @@
             <li>Supplier coordination</li>
             <li>Photo & video referral</li>
           </ul>
-          <a href="{{ url_for('auth.register') }}" class="btn-pkg">Book Now</a>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#orderRequestModal" class="btn-pkg">Book Now</a>
         </div>
       </div>
       <div class="col-12 col-md-6 col-lg-3">
@@ -485,7 +485,7 @@
             <li>Dedicated account manager</li>
             <li>Post-event report</li>
           </ul>
-          <a href="{{ url_for('auth.register') }}" class="btn-pkg">Book Now</a>
+          <a href="#" data-bs-toggle="modal" data-bs-target="#orderRequestModal" class="btn-pkg">Book Now</a>
         </div>
       </div>
       <div class="col-12 col-md-6 col-lg-3">
@@ -719,26 +719,47 @@
       <form action="{{ url_for('public.submit_request') }}" method="POST">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         <div class="modal-body p-4">
-            <p class="text-muted small mb-4">Send a message to our team to start your journey.</p>
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-uppercase">Desired Package</label>
-                <select name="package_type" class="form-select border-0 bg-light" style="padding: 12px;" required>
-                    <option value="" disabled selected>Select a package...</option>
-                    <option value="Silver">🥈 Silver Package (₱25,000)</option>
-                    <option value="Gold">🥇 Gold Package (₱55,000)</option>
-                    <option value="Platinum">💎 Platinum Package (₱95,000)</option>
-                    <option value="Custom">⚡ Custom Vision</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold small text-uppercase">Your Message</label>
-                <textarea name="client_message" class="form-control border-0 bg-light" rows="4" 
-                          placeholder="Tell us about your event date, theme, and ideas..." style="padding: 12px;" required></textarea>
-            </div>
+          <p class="text-muted small mb-4">Please provide your details so our team can reach out to you.</p>
+
+          <div class="mb-3">
+              <label class="form-label fw-bold small text-uppercase">Phone Number</label>
+              <input type="text" name="phone" class="form-control border-0 bg-light p-3" 
+                     placeholder="0917-XXX-XXXX" value="{{ current_user.phone or '' }}" required>
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label fw-bold small text-uppercase">Target Event Date</label>
+              <input type="date" name="event_date" class="form-control border-0 bg-light p-3" required>
+          </div>
+
+          <div class="row">
+              <div class="col-md-6 mb-3">
+                  <label class="form-label fw-bold small text-uppercase">Package</label>
+                  <select name="package_type" class="form-select border-0 bg-light p-3" required>
+                      <option value="Silver">🥈 Silver</option>
+                      <option value="Gold">🥇 Gold</option>
+                      <option value="Platinum">💎 Platinum</option>
+                      <option value="Custom">⚡ Custom</option>
+                  </select>
+              </div>
+              <div class="col-md-6 mb-3">
+                  <label class="form-label fw-bold small text-uppercase">Request Status</label>
+                  <select name="initial_status" class="form-select border-0 bg-light p-3">
+                      <option value="new_inquiry">Just Inquiring</option>
+                      <option value="planning">Ready to Plan</option>
+                      <option value="urgent">Urgent / Immediate</option>
+                  </select>
+              </div>
+          </div>
+
+          <div class="mb-3">
+              <label class="form-label fw-bold small text-uppercase">Your Message/Vision</label>
+              <textarea name="client_message" class="form-control border-0 bg-light p-3" rows="3" 
+                        placeholder="Tell us more about your dream event..." required></textarea>
+          </div>
         </div>
         <div class="modal-footer border-0 p-4 pt-0">
-          <button type="button" class="btn btn-light px-4 py-2" style="border-radius: 10px;" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn-hero-primary px-4 py-2 m-0" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700;">Submit Request ⚡</button>
+          <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Submit Request ⚡</button>
         </div>
       </form>
     </div>
