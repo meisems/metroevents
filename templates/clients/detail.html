@@ -37,38 +37,46 @@
   </div>
 
   <div class="col-md-8">
-    <div class="me-card shadow-sm border-0 p-0">
-      <div class="me-card-header bg-white border-0 pt-4 px-4 pb-0">
-        <h5 class="fw-bold">Associated Events</h5>
+    <div class="accordion shadow-sm border-0" id="clientEventsAccordion" style="border-radius: 15px; overflow: hidden;">
+      <div class="accordion-item border-0">
+        <h2 class="accordion-header" id="eventsHeader">
+          <button class="accordion-button collapsed bg-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents" style="font-size: 1.1rem; color: #1a202c;">
+            📁 View Event Requests ({{ client.events|length }})
+          </button>
+        </h2>
+        <div id="collapseEvents" class="accordion-collapse collapse" aria-labelledby="eventsHeader" data-bs-parent="#clientEventsAccordion">
+          <div class="accordion-body p-0">
+            <table class="me-table mb-0 bg-white">
+              <thead>
+                <tr>
+                  <th>Event ID</th>
+                  <th>Name</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for evt in client.events %}
+                <tr>
+                  <td class="fw-bold text-muted">{{ evt.event_id }}</td>
+                  <td class="fw-bold">{{ evt.name }}</td>
+                  <td>{{ evt.event_date.strftime('%b %d, %Y') if evt.event_date else 'TBD' }}</td>
+                  <td><span class="badge bg-{{ evt.status_color|default('secondary') }}">{{ evt.status|replace('_', ' ')|title }}</span></td>
+                  <td class="text-end">
+                      <a href="{{ url_for('events.detail', event_id=evt.id) }}" class="btn btn-sm btn-outline-gold">Workspace</a>
+                  </td>
+                </tr>
+                {% else %}
+                <tr>
+                  <td colspan="5" class="text-center py-5 text-muted">This client has no event requests yet.</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <table class="me-table mb-0 bg-white">
-        <thead>
-          <tr>
-            <th>Event ID</th>
-            <th>Name</th>
-            <th>Date</th>
-            <th>Status</th>
-            <th class="text-end">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for evt in client.events %}
-          <tr>
-            <td class="fw-bold text-muted">{{ evt.event_id }}</td>
-            <td class="fw-bold">{{ evt.name }}</td>
-            <td>{{ evt.event_date.strftime('%b %d, %Y') if evt.event_date else 'TBD' }}</td>
-            <td><span class="badge bg-{{ evt.status_color|default('secondary') }}">{{ evt.status|replace('_', ' ')|title }}</span></td>
-            <td class="text-end">
-                <a href="{{ url_for('events.detail', event_id=evt.id) }}" class="btn btn-sm btn-outline-gold">Workspace</a>
-            </td>
-          </tr>
-          {% else %}
-          <tr>
-            <td colspan="5" class="text-center py-5 text-muted">This client has no events yet.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
     </div>
   </div>
 </div>
