@@ -51,6 +51,9 @@
         <a href="{{ url_for('clients.list_clients') }}" class="{{ 'active' if request.blueprint == 'clients' }}">
           <span class="nav-icon">👥</span> Clients / CRM
         </a>
+        <a href="{{ url_for('dashboard.manage_reviews') }}" class="{{ 'active' if request.endpoint == 'dashboard.manage_reviews' }}">
+          <span class="nav-icon">🌟</span> Client Reviews
+        </a>
 
         <div class="me-nav-section">Operations</div>
         <a href="{{ url_for('inventory.list_items') }}" class="{{ 'active' if request.blueprint == 'inventory' }}">
@@ -62,13 +65,6 @@
         <a href="{{ url_for('suppliers.list_suppliers') }}" class="{{ 'active' if request.blueprint == 'suppliers' }}">
           <span class="nav-icon">🤝</span> Suppliers Directory
         </a>
-      <li class="nav-item">
-  <a class="nav-link {{ 'active' if request.endpoint == 'dashboard.manage_reviews' }}" 
-     href="{{ url_for('dashboard.manage_reviews') }}">
-    <span class="nav-icon">⭐</span>
-    <span class="nav-text">Client Reviews</span>
-  </a>
-</li>
 
         {% if current_user.is_admin %}
         <div class="me-nav-section">Admin</div>
