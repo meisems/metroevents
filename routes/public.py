@@ -1,41 +1,47 @@
-"""
-Metro Events — Public Routes
-"""
-from flask import Blueprint, render_template, redirect, url_for, request, flash
-from flask_login import current_user, login_required
+from flask import Blueprint, render_template, redirect, url_for, flash, request
 from database import db
+from models.client import Client
+from models.event import Event
 
-# The name 'public' here must match what you use in url_for('public.index')
 public_bp = Blueprint("public", __name__)
 
-@public_bp.route("/")
-def index():
-    # Only redirect team members. Clients stay on the landing page.
-    if current_user.is_authenticated and current_user.role != 'client':
-        return redirect(url_for("dashboard.index"))
-    return render_template("landing.html")
+@public_bp.route("/inquiry", methods=["POST"])
+def submit_inquiry():
+    # 1. Get info from the landing page form
+    name = request.form.get("name", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    phone = request.form.get("phone", "").strip()
+    msg = request.form.get("message", "").strip()
+    pkg = request.form.get("package", "Custom")
 
-@public_bp.route("/submit-request", methods=["POST"])
-@login_required
-def submit_request():
-    package = request.form.get("package_type")
-    message = request.form.get("client_message")
-    
-    # ── SAVE TO DATABASE ──────────────────────────────────────
-    from models.client import Client  # Import your Client model
-    
-    # Create a new entry in your CRM
-    new_inquiry = Client(
-        full_name=current_user.name,
-        email=current_user.email,
-        phone=current_user.phone,
-        pipeline_stage="new_inquiry", # This matches your dashboard filter
-        notes=f"PACKAGE REQUEST: {package}\n\nMESSAGE: {message}"
+    # 🟢 THE DUPLICATE BLOCKER 🟢
+    # Check if this email is already in your CRM
+    client = Client.query.filter_by(email=email).first()
+
+    if not client:
+        # If they are new, create the client profile
+        client = Client(
+            full_name=name,
+            email=email,
+            phone=phone,
+            notes=f"PACKAGE REQUEST: {pkg}\nMESSAGE: {msg}"
+        )
+        db.session.add(client)
+        db.session.flush() # Get the ID
+    else:
+        # If they exist, just update their notes so you see the new request
+        client.notes = (client.notes or "") + f"\n\n--- NEW REQUEST ({datetime.now().date()}) ---\nPKG: {pkg}\nMSG: {msg}"
+        flash(f"Welcome back {name}! We received your new request.", "info")
+
+    # 2. Create the Event Request and attach it to the client (existing or new)
+    new_event = Event(
+        client_id=client.id,
+        name=f"{pkg} Request - {name}",
+        status="new_inquiry"
     )
     
-    db.session.add(new_inquiry)
+    db.session.add(new_event)
     db.session.commit()
-    # ──────────────────────────────────────────────────────────
-    
-    flash(f"Your request for the {package} package has been sent to our team! ⚡", "success")
-    return redirect(url_for("public.index"))
+
+    flash("Your inquiry has been sent! We will contact you soon. ✨", "success")
+    return redirect(url_for("public.index")) # Or your "Thank You" page
