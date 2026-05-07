@@ -6,14 +6,14 @@
   <h2 class="fw-bold mb-0">👤 {{ client.full_name }}</h2>
   
   <div class="d-flex align-items-center gap-2">
-    <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-outline-secondary shadow-sm">✏️ Edit</a>
+    <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-outline-secondary shadow-sm">✏️ Edit Profile</a>
     <a href="{{ url_for('clients.list_clients') }}" class="btn btn-light border shadow-sm">Back to Clients</a>
     
-    {% if current_user.is_admin %}
+    {% if current_user.role == 'admin' %}
     <form action="{{ url_for('clients.delete_client', client_id=client.id) }}" method="POST" class="m-0">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="btn btn-outline-danger shadow-sm" onclick="return confirm('🚨 Are you sure you want to permanently delete {{ client.full_name|escape }}? This will also delete ALL of their associated events and data.');">
-            🗑 Delete
+        <button type="submit" class="btn btn-outline-danger shadow-sm" onclick="return confirm('🚨 DELETE CLIENT? This will permanently remove {{ client.full_name }} and ALL associated event requests.');">
+            🗑 Delete Client
         </button>
     </form>
     {% endif %}
@@ -40,11 +40,11 @@
     <div class="accordion shadow-sm border-0" id="clientEventsAccordion" style="border-radius: 15px; overflow: hidden;">
       <div class="accordion-item border-0">
         <h2 class="accordion-header" id="eventsHeader">
-          <button class="accordion-button collapsed bg-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents" style="font-size: 1.1rem; color: #1a202c;">
+          <button class="accordion-button bg-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="true" aria-controls="collapseEvents" style="font-size: 1.1rem; color: #1a202c;">
             📁 View Event Requests ({{ client.events.count() if client.events.count else client.events|list|length }})
           </button>
         </h2>
-        <div id="collapseEvents" class="accordion-collapse collapse" aria-labelledby="eventsHeader" data-bs-parent="#clientEventsAccordion">
+        <div id="collapseEvents" class="accordion-collapse collapse show" aria-labelledby="eventsHeader" data-bs-parent="#clientEventsAccordion">
           <div class="accordion-body p-0">
             <table class="me-table mb-0 bg-white">
               <thead>
@@ -53,7 +53,7 @@
                   <th>Name</th>
                   <th>Date</th>
                   <th>Status</th>
-                  <th class="text-end">Action</th>
+                  <th class="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -62,9 +62,31 @@
                   <td class="fw-bold text-muted">{{ evt.event_id }}</td>
                   <td class="fw-bold">{{ evt.name }}</td>
                   <td>{{ evt.event_date.strftime('%b %d, %Y') if evt.event_date else 'TBD' }}</td>
-                  <td><span class="badge bg-{{ evt.status_color|default('secondary') }}">{{ evt.status|replace('_', ' ')|title }}</span></td>
+                  <td>
+                      <span class="badge bg-{{ evt.status_color|default('secondary') }}">
+                          {{ evt.status|replace('_', ' ')|title }}
+                      </span>
+                  </td>
                   <td class="text-end">
-                      <a href="{{ url_for('events.detail', event_id=evt.id) }}" class="btn btn-sm btn-outline-gold">Workspace</a>
+                    <div class="btn-group shadow-sm">
+                        <a href="{{ url_for('events.detail', event_id=evt.id) }}" class="btn btn-sm btn-outline-primary" title="Workspace">
+                            🏠
+                        </a>
+                        
+                        <a href="{{ url_for('events.edit_event', event_id=evt.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit Event">
+                            ✏️
+                        </a>
+
+                        {% if current_user.role == 'admin' %}
+                        <form action="{{ url_for('events.delete_event', event_id=evt.id) }}" method="POST" class="d-inline">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" class="btn btn-sm btn-outline-danger" 
+                                    onclick="return confirm('🚨 Delete this specific event request?')" title="Delete Event">
+                                🗑️
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
                   </td>
                 </tr>
                 {% else %}
