@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Manage Reviews — Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">🌟 Client Reviews</h2>
+    <span class="badge bg-gold text-dark px-3 py-2">Total: {{ reviews|length }}</span>
+</div>
+
+<div class="me-card shadow-sm border-0 p-0 overflow-hidden">
+    <table class="me-table mb-0">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Rating</th>
+                <th>Comment</th>
+                <th class="text-center">Featured</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for rev in reviews %}
+            <tr>
+                <td class="text-muted small">{{ rev.created_at.strftime('%m/%d/%y') }}</td>
+                <td class="fw-bold">{{ rev.client.full_name }}</td>
+                <td class="text-gold">
+                    {% for i in range(rev.rating) %}★{% endfor %}
+                </td>
+                <td style="max-width: 300px;">
+                    <p class="mb-0 small text-truncate" title="{{ rev.comment }}">"{{ rev.comment }}"</p>
+                </td>
+                <td class="text-center">
+                    <form action="{{ url_for('dashboard.toggle_review_feature', review_id=rev.id) }}" method="POST">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-sm {{ 'btn-gold' if rev.is_featured else 'btn-outline-secondary' }}">
+                            {{ '★ Featured' if rev.is_featured else '☆ Feature' }}
+                        </button>
+                    </form>
+                </td>
+                <td class="text-end">
+                    {% if current_user.role == 'admin' %}
+                    <form action="{{ url_for('dashboard.delete_review', review_id=rev.id) }}" method="POST" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this review?')">
+                            🗑️
+                        </button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center py-5 text-muted">No reviews submitted yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
