@@ -6,7 +6,6 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_required, current_user
 from database import db
 
-# 🟢 FIXED: ChecklistItem is now imported from models.event
 from models.event import Event, EVENT_TYPES, EVENT_STATUSES
 from models.checklist import ChecklistItem
 from models.client import Client
@@ -15,7 +14,6 @@ from models.payment import Payment, PAYMENT_TYPES, PAYMENT_STATUSES
 from models.moodboard import MoodboardPeg, PEG_CATEGORIES
 from models.supplier import Supplier, PurchaseOrder
 from models.inventory import InventoryItem, Reservation  
-# 🟢 FIXED: Task is now imported alone from models.task
 from models.task import Task  
 
 from datetime import datetime
@@ -122,8 +120,6 @@ def detail(event_id):
     tab   = request.args.get("tab", "overview")
     suppliers = Supplier.query.filter_by(is_active=True).order_by(Supplier.company_name).all()
     all_users = User.query.filter(User.is_active == True).order_by(User.name).all()
-    
-    # Fetch available inventory items for the reservation modal
     inventory_items = InventoryItem.query.filter_by(is_active=True).order_by(InventoryItem.name).all()
 
     return render_template("events/detail.html",
@@ -157,7 +153,7 @@ def update_status(event_id):
     return redirect(request.referrer or url_for("events.list_events"))
 
 
-# ─── EDIT & DELETE ─────────────────────────────────────────────────────────
+# ─── EDIT & DELETE (OPTIMIZED) ─────────────────────────────────────────────
 
 @events_bp.route("/<int:event_id>/edit", methods=["GET", "POST"])
 @login_required
@@ -166,8 +162,12 @@ def edit_event(event_id):
     if request.method == "POST":
         _populate_event(event, request.form)
         db.session.commit()
-        flash("Event updated.", "success")
-        return redirect(url_for("events.detail", event_id=event.id))
+        flash(f"Event '{event.event_id}' updated successfully.", "success")
+        
+        # 🟢 SMART REDIRECT: If we came from the CRM, go back there. 
+        # Otherwise, go to the event detail workspace.
+        target = request.args.get('next')
+        return redirect(target or url_for("events.detail", event_id=event.id))
 
     clients      = Client.query.order_by(Client.full_name).all()
     coordinators = User.query.filter(User.role.in_(["admin","coordinator"])).all()
@@ -179,14 +179,25 @@ def edit_event(event_id):
 @events_bp.route("/<int:event_id>/delete", methods=["POST"])
 @login_required
 def delete_event(event_id):
+    # Only allow Admins to delete events
     if not current_user.is_admin:
-        flash("Only admins can delete events.", "danger")
+        flash("Unauthorized: Only admins can delete event requests.", "danger")
         return redirect(url_for("events.list_events"))
+    
     event = Event.query.get_or_404(event_id)
-    db.session.delete(event)
-    db.session.commit()
-    flash("Event deleted.", "warning")
-    return redirect(url_for("events.list_events"))
+    client_id = event.client_id  # 🟢 Capture client ID to redirect back to CRM profile
+    event_name = event.name
+
+    try:
+        db.session.delete(event)
+        db.session.commit()
+        flash(f"Event '{event_name}' has been deleted.", "warning")
+    except Exception as e:
+        db.session.rollback()
+        flash("Error deleting event. Please try again.", "danger")
+
+    # 🟢 Redirect back to the Client Workspace where the delete was triggered
+    return redirect(url_for("clients.detail", client_id=client_id))
 
 
 # ─── PAYMENTS ──────────────────────────────────────────────────────────────
@@ -272,12 +283,9 @@ def delete_peg(event_id, peg_id):
 @events_bp.route("/<int:event_id>/inventory/reserve", methods=["POST"])
 @login_required
 def reserve_item(event_id):
-    # 🟢 1. Fetch the actual event first so we know what date it is
     event = Event.query.get_or_404(event_id)
-    
     item_id = request.form.get("item_id")
     qty = int(request.form.get("quantity") or 1)
-    
     item = InventoryItem.query.get_or_404(item_id)
     
     new_res = Reservation(
@@ -285,7 +293,7 @@ def reserve_item(event_id):
         item_id=item_id,
         quantity=qty,
         status="reserved",
-        event_date=event.event_date  # 🟢 2. Give the database the required date!
+        event_date=event.event_date
     )
     
     db.session.add(new_res)
@@ -315,7 +323,7 @@ def add_po(event_id):
     po = PurchaseOrder(
         supplier_id           = int(request.form.get("supplier_id")),
         event_id              = event.id,
-        po_number             = request.form.get("po_number", "").strip(),
+        po_number              = request.form.get("po_number", "").strip(),
         description           = request.form.get("description", "").strip(),
         amount                = float(request.form.get("amount") or 0),
         status                = request.form.get("status", "pending"),
@@ -341,7 +349,6 @@ def add_po(event_id):
 @login_required
 def add_task(event_id):
     event = Event.query.get_or_404(event_id)
-    
     title = request.form.get("title", "").strip()
     assigned_to = request.form.get("assigned_to")
     due_date_raw = request.form.get("due_date")
@@ -370,7 +377,7 @@ def add_task(event_id):
 @login_required
 def toggle_task(event_id, task_id):
     task = Task.query.get_or_404(task_id)
-    task.is_done = not task.is_done  # Flips True to False, or False to True
+    task.is_done = not task.is_done
     db.session.commit()
     return redirect(url_for('events.detail', event_id=event_id, tab='tasks'))
 
@@ -404,7 +411,7 @@ def add_checklist_item(event_id):
 @login_required
 def toggle_checklist_item(event_id, item_id):
     item = ChecklistItem.query.get_or_404(item_id)
-    item.is_done = not item.is_done # Flips status
+    item.is_done = not item.is_done
     db.session.commit()
     return redirect(url_for('events.detail', event_id=event_id, tab='checklist'))
 
@@ -419,19 +426,13 @@ def delete_checklist_item(event_id, item_id):
 @events_bp.route("/seed-suppliers")
 @login_required
 def seed_suppliers():
-    from models.supplier import Supplier
-    
-    # Check if we already have suppliers so we don't make duplicates
     if Supplier.query.count() == 0:
         s1 = Supplier(company_name="Juan's Catering Co.", category="Catering", email="juan@catering.com")
         s2 = Supplier(company_name="City Sounds & Lights", category="Audio/Visual", email="contact@citysounds.com")
         s3 = Supplier(company_name="Petal & Bloom Florists", category="Florist", email="hello@petalbloom.com")
-        
         db.session.add_all([s1, s2, s3])
         db.session.commit()
         flash("✅ Test suppliers magically added to your database!", "success")
     else:
         flash("Suppliers already exist in the database.", "info")
-        
-    # Redirect back to the dashboard or events list
     return redirect(url_for('dashboard.index'))
