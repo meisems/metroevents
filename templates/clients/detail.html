@@ -41,7 +41,7 @@
       <div class="accordion-item border-0">
         <h2 class="accordion-header" id="eventsHeader">
           <button class="accordion-button collapsed bg-white fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseEvents" aria-expanded="false" aria-controls="collapseEvents" style="font-size: 1.1rem; color: #1a202c;">
-            📁 View Event Requests ({{ client.events|length }})
+            📁 View Event Requests ({{ client.events.count() if client.events.count else client.events|list|length }})
           </button>
         </h2>
         <div id="collapseEvents" class="accordion-collapse collapse" aria-labelledby="eventsHeader" data-bs-parent="#clientEventsAccordion">
