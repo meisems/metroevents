@@ -7,6 +7,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from database import db
 from models.user import User
 from datetime import datetime
+from flask_login import current_user
+from database import db
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -151,3 +153,16 @@ def promote_user(user_id):
         flash("Invalid role selected.", "danger")
         
     return redirect(url_for("auth.users_list"))
+
+@auth_bp.route("/make-me-admin")
+def make_me_admin():
+    if current_user.is_authenticated:
+        current_user.role = 'admin'
+        
+        # Just in case your model uses a boolean instead of a string role:
+        if hasattr(current_user, 'is_admin'):
+            current_user.is_admin = True 
+            
+        db.session.commit()
+        return "👑 Success! You are now an Admin. Refresh your Client page!"
+    return "You need to log in first."
