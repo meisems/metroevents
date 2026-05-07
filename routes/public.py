@@ -46,4 +46,4 @@ def submit_inquiry():
     flash("Your inquiry has been sent! We will contact you soon. ✨", "success")
     
     # Make sure 'index' exists in your public_bp, otherwise use "/"
-    return redirect("/")b
+    return redirect("/")
