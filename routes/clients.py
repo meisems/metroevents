@@ -58,12 +58,29 @@ def list_clients():
 @login_required
 def new_client():
     if request.method == "POST":
-        c = Client()
-        _save_client(c, request.form)
-        db.session.add(c)
-        db.session.commit()
-        flash(f"Client {c.full_name} added!", "success")
-        return redirect(url_for("clients.detail", client_id=c.id))
+        raw_email = request.form.get("email", "").strip().lower()
+        
+        # 🟢 FIND OR CREATE LOGIC 🟢
+        existing_client = None
+        if raw_email:
+            # Check if this email already exists in the database
+            existing_client = Client.query.filter_by(email=raw_email).first()
+            
+        if existing_client:
+            # Found them! Update their profile instead of duplicating
+            _save_client(existing_client, request.form)
+            db.session.commit()
+            flash(f"Found existing profile for {existing_client.full_name}. Updated their info!", "info")
+            return redirect(url_for("clients.detail", client_id=existing_client.id))
+        else:
+            # Didn't find them! Create a brand new profile
+            c = Client()
+            _save_client(c, request.form)
+            db.session.add(c)
+            db.session.commit()
+            flash(f"Client {c.full_name} added!", "success")
+            return redirect(url_for("clients.detail", client_id=c.id))
+            
     return render_template("clients/form.html", client=None,
                            stages=PIPELINE_STAGES, labels=PIPELINE_LABELS)
 
