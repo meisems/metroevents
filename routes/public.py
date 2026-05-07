@@ -1,58 +1,56 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask_login import current_user
 from database import db
 from models.client import Client
 from models.event import Event
-from datetime import datetime  # 👈 Critical for tracking dates
+from datetime import datetime
 
 public_bp = Blueprint("public", __name__)
 
-# ─── HOME PAGE (INDEX) ─────────────────────────────────────────────────────
 @public_bp.route("/")
 def index():
-    # If this route was missing, your whole site would 500/404
-    return render_template("public/index.html")
+    # 🚨 IMPORTANT: Make sure your HTML file is named landing.html 
+    # and is located directly in the /templates folder.
+    return render_template("landing.html")
 
-# ─── NEW INQUIRY HANDLER ───────────────────────────────────────────────────
-@public_bp.route("/inquiry", methods=["POST"])
-def submit_inquiry():
-    name = request.form.get("name", "").strip()
-    email = request.form.get("email", "").strip().lower()
-    phone = request.form.get("phone", "").strip()
-    msg = request.form.get("message", "").strip()
-    pkg = request.form.get("package", "Custom")
+@public_bp.route("/submit-request", methods=["POST"])
+def submit_request():
+    package_type = request.form.get("package_type")
+    client_message = request.form.get("client_message", "").strip()
 
-    if not email:
-        flash("Email is required to send an inquiry.", "danger")
-        return redirect(url_for("public.index"))
+    if not current_user.is_authenticated:
+        flash("Please log in to submit a request.", "warning")
+        return redirect(url_for("auth.login"))
 
-    # 🟢 THE DUPLICATE BLOCKER 🟢
+    # 🟢 THE DUPLICATE BLOCKER
+    # This logic checks if the email already exists before creating a new row
+    email = current_user.email.lower().strip()
     client = Client.query.filter_by(email=email).first()
 
     if not client:
-        # Create new client
+        # Create a new profile only if one doesn't exist
         client = Client(
-            full_name=name,
+            full_name=current_user.name,
             email=email,
-            phone=phone,
-            notes=f"PACKAGE REQUEST: {pkg}\nMESSAGE: {msg}"
+            phone=current_user.phone or "None",
+            notes=f"Initial Inquiry: {client_message}"
         )
         db.session.add(client)
         db.session.flush() 
     else:
-        # Update existing client notes instead of duplicating
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        client.notes = (client.notes or "") + f"\n\n--- NEW REQUEST ({date_str}) ---\nPKG: {pkg}\nMSG: {msg}"
-        flash(f"Welcome back {name}! We received your new request.", "info")
+        # If they exist, just update their notes instead of making a new row
+        today = datetime.now().strftime("%Y-%m-%d")
+        client.notes = (client.notes or "") + f"\n\n[{today}] New Request: {package_type}\n{client_message}"
 
-    # Create the Event
+    # Create the Event and attach it to the (existing or new) client
     new_event = Event(
         client_id=client.id,
-        name=f"{pkg} Request - {name}",
+        name=f"{package_type} Request - {client.full_name}",
         status="new_inquiry"
     )
     
     db.session.add(new_event)
     db.session.commit()
 
-    flash("Your inquiry has been sent! We will contact you soon. ✨", "success")
+    flash("⚡ Request submitted! Check your CRM to see it in the folder.", "success")
     return redirect(url_for("public.index"))
