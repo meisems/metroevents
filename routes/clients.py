@@ -115,3 +115,24 @@ def delete_client(client_id):
     db.session.commit()
     flash("Client deleted.", "warning")
     return redirect(url_for("clients.list_clients"))
+
+# ─── DELETE CLIENT (ADMIN ONLY) ───────────────────────────────────────────
+
+@clients_bp.route("/<int:client_id>/delete", methods=["POST"])
+@login_required
+def delete_client(client_id):
+    # 🟢 Security Check: Kick them out if they aren't an admin
+    if not current_user.is_admin:
+        flash("Access Denied: Only admins can delete clients.", "danger")
+        return redirect(url_for("clients.list_clients"))
+        
+    from models.client import Client  # Import if not already at the top
+    
+    client = Client.query.get_or_404(client_id)
+    client_name = client.full_name
+    
+    db.session.delete(client)
+    db.session.commit()
+    
+    flash(f"Client '{client_name}' has been permanently deleted.", "warning")
+    return redirect(url_for("clients.list_clients"))
