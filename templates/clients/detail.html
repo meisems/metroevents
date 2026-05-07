@@ -1,225 +1,65 @@
 {% extends "base.html" %}
-{% block title %}{{ event.name }}{% endblock %}
+{% block title %}{{ client.full_name }} — CRM{% endblock %}
 
 {% block content %}
-<div class="me-workspace-header" style="margin:-28px -28px 0;padding:20px 28px 0;">
-  <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 pb-2">
-    <div>
-      <div class="me-workspace-title">{{ event.name }}</div>
-      <div class="me-workspace-meta">
-        <span style="color:#C9A84C; font-weight:800; letter-spacing: 1px;">{{ event.event_id }}</span> ·
-        {{ event.event_type|title }} ·
-        {{ event.event_date|dateformat }} ·
-        {{ event.venue_name or 'Venue TBD' }} ·
-        <span class="badge bg-{{ event.status_color }}">{{ event.status|replace('_',' ')|title }}</span>
-        {% if event.days_until >= 0 and event.status not in ['done','cancelled'] %}
-          · <strong style="color:#C9A84C;">{{ event.days_until }} days away</strong>
-        {% endif %}
-      </div>
-    </div>
-    <div class="d-flex gap-2 pb-2">
-      <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">✏️ Edit</a>
-      {% if current_user.is_admin %}
-      <form action="{{ url_for('events.delete_event', event_id=event.id) }}" method="POST">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <button type="submit" class="btn btn-sm btn-outline-danger">🗑</button>
-      </form>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="me-workspace-tabs">
-    {% set nav_tabs = [
-      ('overview', '📋', 'Overview'),
-      ('moodboard', '🎨', 'Moodboard'),
-      ('quote', '💰', 'Quote'),
-      ('checklist', '✅', 'Checklist'),
-      ('tasks', '📌', 'Tasks'),
-      ('inventory', '📦', 'Inventory'),
-      ('suppliers', '🤝', 'Suppliers'),
-      ('payments', '💸', 'Payments'),
-      ('log', '📝', 'Event Log'),
-    ] %}
-    {% for t_id, t_icon, t_label in nav_tabs %}
-    <a href="{{ url_for('events.detail', event_id=event.id, tab=t_id) }}"
-       class="tab-btn {{ 'active' if tab == t_id or (not tab and t_id == 'overview') }}">
-      {{ t_icon }} {{ t_label }}
-    </a>
-    {% endfor %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 class="fw-bold mb-0">👤 {{ client.full_name }}</h2>
+  <div>
+    <a href="{{ url_for('clients.edit_client', client_id=client.id) }}" class="btn btn-outline-secondary shadow-sm me-2">✏️ Edit</a>
+    <a href="{{ url_for('clients.list_clients') }}" class="btn btn-light border shadow-sm">Back to Clients</a>
   </div>
 </div>
 
-<div class="mt-4">
-
-{# =================== 📋 OVERVIEW =================== #}
-{% if tab == 'overview' or not tab %}
 <div class="row g-4">
-  <div class="col-lg-4">
-    <div class="me-card mb-4">
-      <div class="me-card-header"><h5>📋 Event Details</h5></div>
-      <div class="me-card-body">
-        {% macro drow(icon, label, val) %}
-        <div class="d-flex gap-2 mb-2" style="font-size:.875rem;">
-          <span>{{ icon }}</span>
-          <div><span style="color:#8896A5;">{{ label }}:</span> <strong>{{ val or '—' }}</strong></div>
-        </div>
-        {% endmacro %}
-        {{ drow('🆔', 'Event ID', event.event_id) }}
-        {{ drow('👤', 'Client', event.client.full_name) }}
-        {{ drow('📅', 'Date', event.event_date|dateformat) }}
-        {{ drow('🏠', 'Venue', event.venue_name) }}
-        {{ drow('🎩', 'Type', event.event_type|title) }}
-        {{ drow('🎙', 'Coordinator', event.coordinator.name if event.coordinator else None) }}
+  <div class="col-md-4">
+    <div class="me-card shadow-sm border-0 p-4">
+      <h5 class="fw-bold mb-3">Client Contact Info</h5>
+      
+      <p class="mb-1 text-muted small text-uppercase fw-bold">Email</p>
+      <p>{{ client.email or 'No email provided' }}</p>
+
+      <p class="mb-1 text-muted small text-uppercase fw-bold mt-3">Phone</p>
+      <p>{{ client.phone or 'No phone provided' }}</p>
+      
+      <p class="mb-1 text-muted small text-uppercase fw-bold mt-3">Address</p>
+      <p>{{ client.address or 'No address provided' }}</p>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="me-card shadow-sm border-0 p-0">
+      <div class="me-card-header bg-white border-0 pt-4 px-4 pb-0">
+        <h5 class="fw-bold">Associated Events</h5>
       </div>
-    </div>
-
-    <div class="me-card">
-      <div class="me-card-header"><h5>💰 Financial Summary</h5></div>
-      <div class="me-card-body">
-        {% set quote = event.active_quote %}
-        <div class="d-flex justify-content-between mb-2" style="font-size:.9rem;">
-          <span style="color:#8896A5;">Grand Total</span>
-          <strong>{{ quote.grand_total|peso if quote else 'No Quote Yet' }}</strong>
-        </div>
-        {% if quote %}
-        <div class="d-flex justify-content-between mb-2" style="font-size:.85rem; padding: 4px 8px; background: #f8f9fa; border-radius: 4px;">
-          <span style="color:#8896A5;">50% Downpayment Status</span>
-          <span style="font-weight:600; color: {{ '#48BB78' if event.downpayment_status == 'Cleared' else '#C9A84C' }};">
-            {{ event.downpayment_status|peso if event.downpayment_status != 'Cleared' else 'Cleared ✓' }}
-          </span>
-        </div>
-        {% endif %}
-        <div class="d-flex justify-content-between mb-2" style="font-size:.9rem;">
-          <span style="color:#8896A5;">Total Paid</span>
-          <strong style="color:#48BB78;">{{ event.total_paid|peso }}</strong>
-        </div>
-        <hr class="divider" />
-        <div class="d-flex justify-content-between">
-          <span style="font-weight:700;">Remaining Balance</span>
-          <strong style="color:{{ '#F56565' if event.balance_due > 0 else '#48BB78' }}; font-size:1.1rem;">
-            {% if not quote %} ₱0.00 {% elif event.balance_due > 0 %} {{ event.balance_due|peso }} {% else %} FULLY PAID ✓ {% endif %}
-          </strong>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-8">
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-value">{{ event.tasks.count() }}</div><div class="kpi-label">Tasks</div></div></div>
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon green">✅</div><div class="kpi-value">{{ event.checklist_items.count() }}</div><div class="kpi-label">Checklist</div></div></div>
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon gold">🎨</div><div class="kpi-value">{{ event.moodboard_pegs.count() }}</div><div class="kpi-label">Pegs</div></div></div>
-      <div class="col-6 col-md-3"><div class="kpi-card"><div class="kpi-icon purple">📝</div><div class="kpi-value">{{ event.event_logs.count() }}</div><div class="kpi-label">Logs</div></div></div>
-    </div>
-  </div>
-</div>
-
-{# =================== 🎨 MOODBOARD =================== #}
-{% elif tab == 'moodboard' %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <h5>🎨 Moodboard & Inspiration</h5>
-  <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addPeg">➕ Add Peg</button>
-</div>
-
-<div class="collapse mb-4" id="addPeg">
-  <div class="me-card me-card-body">
-    <form method="POST" action="{{ url_for('events.add_peg', event_id=event.id) }}" enctype="multipart/form-data">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-        <div class="row g-3">
-            <div class="col-md-6"><label>Title</label><input type="text" name="title" class="form-control" /></div>
-            <div class="col-md-6"><label>Upload Image</label><input type="file" name="peg_image" class="form-control" /></div>
-            <div class="col-12"><button type="submit" class="btn-gold">Upload Peg</button></div>
-        </div>
-    </form>
-  </div>
-</div>
-
-<div class="moodboard-grid">
-  {% for peg in event.moodboard_pegs.all() %}
-  <div class="peg-card"><img src="{{ peg.image_url }}" onerror="this.src='/static/img/no-image.svg'" /></div>
-  {% else %}<p class="text-muted">No pegs added yet.</p>{% endfor %}
-</div>
-
-{# =================== 💰 QUOTE =================== #}
-{% elif tab == 'quote' %}
-<div class="d-flex justify-content-between mb-3">
-  <h5>💰 Quotation Workspace</h5>
-  <a href="{{ url_for('quotes.new_quote', event_id=event.id) }}" class="btn-gold">➕ Create New Revision</a>
-</div>
-{% set quote = event.active_quote %}
-{% if quote %}
-  <div class="me-card me-card-body p-0">
-    <table class="me-table">
-        <thead><tr><th>Item</th><th class="text-end">Total</th></tr></thead>
+      <table class="me-table mb-0 bg-white">
+        <thead>
+          <tr>
+            <th>Event ID</th>
+            <th>Name</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
         <tbody>
-        {% for item in quote.items %}
-          <tr><td>{{ item.item_name }}</td><td class="text-end">{{ item.total_price|peso }}</td></tr>
-        {% endfor %}
+          {% for evt in client.events %}
+          <tr>
+            <td class="fw-bold text-muted">{{ evt.event_id }}</td>
+            <td class="fw-bold">{{ evt.name }}</td>
+            <td>{{ evt.event_date.strftime('%b %d, %Y') if evt.event_date else 'TBD' }}</td>
+            <td><span class="badge bg-{{ evt.status_color|default('secondary') }}">{{ evt.status|replace('_', ' ')|title }}</span></td>
+            <td class="text-end">
+                <a href="{{ url_for('events.detail', event_id=evt.id) }}" class="btn btn-sm btn-outline-gold">Workspace</a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center py-5 text-muted">This client has no events yet.</td>
+          </tr>
+          {% endfor %}
         </tbody>
-    </table>
-  </div>
-{% else %}<p class="text-center py-5">No quote generated for this event.</p>{% endif %}
-
-{# =================== ✅ CHECKLIST =================== #}
-{% elif tab == 'checklist' %}
-<div class="d-flex justify-content-between mb-3">
-    <h5>✅ Planning Checklist</h5>
-    <button class="btn-gold">➕ Add Task</button>
-</div>
-{% for item in event.checklist_items.all() %}
-  <div class="checklist-item px-3 py-2 mb-1" style="background:#fff; border-radius:8px;">{{ item.title }}</div>
-{% else %}<p class="text-muted">Checklist is empty.</p>{% endfor %}
-
-{# =================== 📌 TASKS =================== #}
-{% elif tab == 'tasks' %}
-<div class="d-flex justify-content-between mb-3">
-    <h5>📌 Crew Tasks</h5>
-    <button class="btn-gold" data-bs-toggle="collapse" data-bs-target="#addTask">➕ Assign Task</button>
-</div>
-<table class="me-table" style="background:#fff;">
-  {% for t in event.tasks.all() %}
-    <tr><td>{{ t.title }}</td><td><span class="badge bg-secondary">{{ 'Done' if t.is_done else 'Pending' }}</span></td></tr>
-  {% else %}<tr><td class="py-4 text-center">No tasks assigned to crew.</td></tr>{% endfor %}
-</table>
-
-{# =================== 💸 PAYMENTS =================== #}
-{% elif tab == 'payments' %}
-<div class="d-flex justify-content-between mb-3">
-    <h5>💸 Payment Records</h5>
-    <button class="btn-gold">➕ Record Payment</button>
-</div>
-<table class="me-table" style="background:#fff;">
-  <thead><tr><th>Label</th><th>Amount</th><th>Status</th></tr></thead>
-  <tbody>
-  {% for p in event.payments.all() %}
-    <tr><td>{{ p.label }}</td><td>{{ p.amount|peso }}</td><td>{{ p.status|title }}</td></tr>
-  {% else %}<tr><td colspan="3" class="py-4 text-center">No payments recorded.</td></tr>{% endfor %}
-  </tbody>
-</table>
-
-{# =================== 📝 LOG =================== #}
-{% elif tab == 'log' %}
-<div class="d-flex justify-content-between mb-3">
-    <h5>📝 Event Day Log</h5>
-    <button class="btn-gold">➕ New Entry</button>
-</div>
-<div class="timeline">
-  {% set logs = event.event_logs.all() | sort(attribute='logged_at', reverse=True) %}
-  {% for entry in logs %}
-    <div class="p-3 mb-2" style="background:#fff; border-left:4px solid #C9A84C; border-radius:4px;">
-        <strong>{{ entry.log_type|title }}</strong>: {{ entry.message }}
+      </table>
     </div>
-  {% else %}<p class="text-muted">Log is empty.</p>{% endfor %}
-</div>
-
-{# =================== 🚨 FALLBACK =================== #}
-{% else %}
-<div class="text-center py-5" style="background:#fff; border-radius:12px; border:2px dashed #E2E8F0;">
-    <h4>The "{{ tab }}" tab is under construction</h4>
-    <p class="text-muted">We are still wiring up the backend for this module.</p>
-    <a href="{{ url_for('events.detail', event_id=event.id, tab='overview') }}" class="btn-gold">Go to Overview</a>
-</div>
-{% endif %}
-
+  </div>
 </div>
 {% endblock %}
