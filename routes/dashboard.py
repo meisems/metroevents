@@ -10,10 +10,44 @@ from models.client import Client
 from models.task import Task
 from models.payment import Payment
 from models.inventory import InventoryItem
+from models.review import Review
 from datetime import datetime, date, timedelta
 
 dashboard_bp = Blueprint("dashboard", __name__)
 
+@dashboard_bp.route("/reviews")
+@login_required
+def manage_reviews():
+    if current_user.role == 'client':
+        return redirect(url_for('public.index'))
+        
+    # Get all reviews, newest first
+    all_reviews = Review.query.order_by(Review.created_at.desc()).all()
+    return render_template("admin/reviews.html", reviews=all_reviews)
+
+@dashboard_bp.route("/reviews/<int:review_id>/toggle-feature", methods=["POST"])
+@login_required
+def toggle_review_feature(review_id):
+    if current_user.role == 'client': abort(403)
+    
+    review = Review.query.get_or_404(review_id)
+    review.is_featured = not review.is_featured # Fills the checkbox logic
+    db.session.commit()
+    
+    status = "featured" if review.is_featured else "removed from featured"
+    flash(f"Review by {review.client.full_name} is now {status}.", "success")
+    return redirect(url_for('dashboard.manage_reviews'))
+
+@dashboard_bp.route("/reviews/<int:review_id>/delete", methods=["POST"])
+@login_required
+def delete_review(review_id):
+    if current_user.role != 'admin': abort(403)
+    
+    review = Review.query.get_or_404(review_id)
+    db.session.delete(review)
+    db.session.commit()
+    flash("Review deleted permanently.", "warning")
+    return redirect(url_for('dashboard.manage_reviews'))
 
 @dashboard_bp.route("/dashboard")
 @login_required
