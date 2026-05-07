@@ -284,7 +284,11 @@
                     <span class="me-2">📦</span> Request a Package
                   </a>
                 </li>
-              <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#reviewModal">🌟 Leave a Review</a></li>
+              <li>
+                <a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                    <span class="me-2">🌟</span> Leave a Review
+              </a>
+              </li>
                 {% if current_user.role != 'client' %}
                 <li>
                   <a class="dropdown-item py-2" href="{{ url_for('dashboard.index') }}">
