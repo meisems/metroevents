@@ -3,6 +3,7 @@ from flask_login import current_user, login_required
 from database import db
 from models.client import Client
 from models.event import Event
+from models.review import Review
 from datetime import datetime
 
 public_bp = Blueprint("public", __name__)
@@ -66,4 +67,35 @@ def submit_request():
         print(f"SUBMISSION ERROR: {str(e)}")
         flash("Error saving your request. Please check the date format.", "danger")
 
+    return redirect(url_for("public.index"))
+
+@public_bp.route("/")
+def index():
+    # Only show "Featured" reviews on the landing page
+    featured_reviews = Review.query.filter_by(is_featured=True).order_by(Review.created_at.desc()).limit(3).all()
+    return render_template("landing.html", reviews=featured_reviews)
+
+@public_bp.route("/submit-review", methods=["POST"])
+@login_required
+def submit_review():
+    rating = request.form.get("rating", 5, type=int)
+    comment = request.form.get("comment", "").strip()
+
+    # Find the client profile linked to this user
+    client = Client.query.filter_by(email=current_user.email).first()
+    
+    if not client:
+        flash("You need a client profile to leave a review. Please submit a request first!", "warning")
+        return redirect(url_for("public.index"))
+
+    new_review = Review(
+        client_id=client.id,
+        rating=rating,
+        comment=comment
+    )
+    
+    db.session.add(new_review)
+    db.session.commit()
+    
+    flash("🌟 Thank you for your feedback! It means the world to us.", "success")
     return redirect(url_for("public.index"))
