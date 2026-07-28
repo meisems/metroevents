@@ -2,8 +2,8 @@
 {% block title %}Taglish Templates — Metro Events{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center gap-2 mb-3">
-  <a href="{{ url_for('reminders.index') }}" class="btn btn-sm btn-outline-secondary">← Reminders</a>
-  <h2>📝 Taglish Auto-Reply Templates</h2>
+  <a href="{{ url_for('reminders.index') }}" class="btn btn-sm btn-outline-secondary">{{ icon('arrow-left') }} Reminders</a>
+  <h2>{{ icon('edit') }} Taglish Auto-Reply Templates</h2>
 </div>
 
 <div class="row g-3">
@@ -59,7 +59,7 @@
     <div class="card shadow-sm h-100">
       <div class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-bold">Preview</span>
-        <button class="btn btn-sm btn-outline-secondary" onclick="copyText()">📋 Copy</button>
+        <button class="btn btn-sm btn-outline-secondary" onclick="copyText()">{{ icon('clipboard') }} Copy</button>
       </div>
       <div class="card-body">
         <label class="form-label small text-muted">Subject:</label>
@@ -72,14 +72,14 @@
       <div class="card-footer d-flex gap-2">
         {% if selected_client and selected_client.email %}
         <a href="mailto:{{ selected_client.email }}?subject={{ rendered_subject | urlencode }}"
-           class="btn btn-primary btn-sm">📧 Open in Mail</a>
+           class="btn btn-primary btn-sm">{{ icon('mail') }} Open in Mail</a>
         {% endif %}
         {% if selected_client and selected_client.phone %}
         <a href="https://wa.me/{{ selected_client.phone | replace(' ','') | replace('+','') }}"
-           target="_blank" class="btn btn-success btn-sm">💬 WhatsApp</a>
+           target="_blank" class="btn btn-success btn-sm">{{ icon('message') }} WhatsApp</a>
         {% endif %}
         <button onclick="copyText()" class="btn btn-outline-secondary btn-sm">
-          📋 Copy Body
+          {{ icon('clipboard') }} Copy Body
         </button>
       </div>
     </div>
@@ -92,8 +92,8 @@ function copyText() {
   body.select();
   document.execCommand('copy');
   const btn = event.target;
-  btn.textContent = '✅ Copied!';
-  setTimeout(() => btn.textContent = '📋 Copy Body', 2000);
+  btn.textContent = 'Copied!';
+  setTimeout(() => btn.textContent = 'Copy Body', 2000);
 }
 </script>
 {% endblock %}

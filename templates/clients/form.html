@@ -2,14 +2,14 @@
 {% block title %}{{ 'Edit' if client else 'New' }} Client{% endblock %}
 {% block page_title %}{{ 'Edit' if client else 'New' }} Client{% endblock %}
 {% block breadcrumb %}
-  <a href="{{ url_for('clients.list_clients') }}">Clients</a> → {{ 'Edit' if client else 'New' }}
+  <a href="{{ url_for('clients.list_clients') }}">Clients</a> {{ icon('arrow-right') }} {{ 'Edit' if client else 'New' }}
 {% endblock %}
 
 {% block content %}
 <div style="max-width:680px;">
   <div class="me-card">
     <div class="me-card-header">
-      <h5>{{ '✏️ Edit' if client else '➕ New' }} Client</h5>
+      <h5>{{ icon('edit' if client else 'plus') }} {{ 'Edit' if client else 'New' }} Client</h5>
     </div>
     <div class="me-card-body">
       <form method="POST">

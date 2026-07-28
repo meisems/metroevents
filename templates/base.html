@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/metro.css') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,500;0,600;0,700;1,500&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
   
   {% block head %}{% endblock %}
 </head>
@@ -22,7 +22,7 @@
 <div class="me-layout">
   <aside class="me-sidebar">
     <div class="me-sidebar-logo">
-      <div class="brand-name">⚡ {{ APP_NAME }}</div>
+      <div class="brand-name">{{ icon('bolt') }} {{ APP_NAME }}</div>
       <div class="brand-tag">{{ APP_TAGLINE }}</div>
     </div>
 
@@ -38,56 +38,56 @@
       {% if current_user.role == 'client' %}
         <div class="me-nav-section">Portal</div>
         <a href="{{ url_for('public.index') }}">
-          <span class="nav-icon">🌐</span> Back to Website
+          <span class="nav-icon">{{ icon('globe') }}</span> Back to Website
         </a>
       {% else %}
         <div class="me-nav-section">Main</div>
         <a href="{{ url_for('dashboard.index') }}" class="{{ 'active' if request.endpoint == 'dashboard.index' }}">
-          <span class="nav-icon">🏠</span> Dashboard
+          <span class="nav-icon">{{ icon('home') }}</span> Dashboard
         </a>
         <a href="{{ url_for('events.list_events') }}" class="{{ 'active' if request.blueprint == 'events' }}">
-          <span class="nav-icon">🎉</span> Events
+          <span class="nav-icon">{{ icon('party') }}</span> Events
         </a>
         <a href="{{ url_for('clients.list_clients') }}" class="{{ 'active' if request.blueprint == 'clients' }}">
-          <span class="nav-icon">👥</span> Clients / CRM
+          <span class="nav-icon">{{ icon('users') }}</span> Clients / CRM
         </a>
         <a href="{{ url_for('dashboard.manage_reviews') }}" class="{{ 'active' if request.endpoint == 'dashboard.manage_reviews' }}">
-          <span class="nav-icon">🌟</span> Client Reviews
+          <span class="nav-icon">{{ icon('star') }}</span> Client Reviews
         </a>
 
         <div class="me-nav-section">Operations</div>
         <a href="{{ url_for('inventory.list_items') }}" class="{{ 'active' if request.blueprint == 'inventory' }}">
-          <span class="nav-icon">📦</span> Inventory
+          <span class="nav-icon">{{ icon('box') }}</span> Inventory
         </a>
         <a href="{{ url_for('meetings.index') }}" class="{{ 'active' if request.blueprint == 'meetings' }}">
-          <span class="nav-icon">📅</span> Meeting Schedules
+          <span class="nav-icon">{{ icon('calendar') }}</span> Meeting Schedules
         </a>
         <a href="{{ url_for('suppliers.list_suppliers') }}" class="{{ 'active' if request.blueprint == 'suppliers' }}">
-          <span class="nav-icon">🤝</span> Suppliers Directory
+          <span class="nav-icon">{{ icon('handshake') }}</span> Suppliers Directory
         </a>
 
         {% if current_user.is_admin %}
         <div class="me-nav-section">Admin</div>
         <a href="{{ url_for('auth.users_list') }}" class="{{ 'active' if request.endpoint == 'auth.users_list' }}">
-          <span class="nav-icon">🔑</span> Team / Users
+          <span class="nav-icon">{{ icon('key') }}</span> Team / Users
         </a>
         <a href="{{ url_for('auth.register') }}" class="{{ 'active' if request.endpoint == 'auth.register' }}">
-          <span class="nav-icon">➕</span> Add User
+          <span class="nav-icon">{{ icon('plus') }}</span> Add User
         </a>
         {% endif %}
       {% endif %}
     </nav>
 
     <div class="me-sidebar-footer">
-      <a href="{{ url_for('auth.profile') }}" class="{{ 'active' if request.endpoint == 'auth.profile' }}"><span>⚙️</span> Profile</a>
-      <a href="{{ url_for('auth.logout') }}"><span>🚪</span> Logout</a>
+      <a href="{{ url_for('auth.profile') }}" class="{{ 'active' if request.endpoint == 'auth.profile' }}"><span>{{ icon('settings') }}</span> Profile</a>
+      <a href="{{ url_for('auth.logout') }}"><span>{{ icon('logout') }}</span> Logout</a>
     </div>
   </aside>
 
   <div class="me-main">
     <header class="me-topbar">
       <div class="d-flex align-items-center gap-3">
-        <button id="sidebarToggle" class="d-md-none btn btn-sm btn-outline-secondary">☰</button>
+        <button id="sidebarToggle" class="d-md-none btn btn-sm btn-outline-secondary">{{ icon('menu') }}</button>
         <div>
           <div class="page-title">{% block page_title %}{{ APP_NAME }}{% endblock %}</div>
           <div class="breadcrumb">{% block breadcrumb %}{% endblock %}</div>
@@ -97,7 +97,7 @@
       <div class="d-flex align-items-center gap-2">
         {% if current_user.role == 'client' %}
           <a href="{{ url_for('public.index') }}" class="btn btn-sm btn-gold d-none d-sm-inline-block">
-            <span class="me-1">🏠</span> Website Home
+            <span class="me-1">{{ icon('home') }}</span> Website Home
           </a>
         {% endif %}
         

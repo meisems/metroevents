@@ -3,7 +3,7 @@
 {% block page_title %}Clients & CRM{% endblock %}
 {% block breadcrumb %}Clients{% endblock %}
 {% block topbar_actions %}
-  <a href="{{ url_for('clients.new_client') }}" class="btn-gold">➕ Add Client</a>
+  <a href="{{ url_for('clients.new_client') }}" class="btn-gold">{{ icon('plus') }} Add Client</a>
 {% endblock %}
 
 {% block content %}
@@ -50,7 +50,7 @@
         {% for c in clients.items %}
         <tr>
           <td>
-            <a href="{{ url_for('clients.detail', client_id=c.id) }}" style="font-weight:700;color:#1A1A2E;">
+            <a href="{{ url_for('clients.detail', client_id=c.id) }}" style="font-weight:700;color:var(--me-ink);">
               {{ c.full_name }}
             </a>
             {% if c.referred_by %}<div class="text-muted-sm">via {{ c.referred_by }}</div>{% endif %}
@@ -66,7 +66,7 @@
             {% if c.next_action %}
               <form action="{{ url_for('clients.advance_stage', client_id=c.id) }}" method="POST" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button type="submit" class="btn btn-sm btn-outline-success">{{ c.next_action }} →</button>
+                <button type="submit" class="btn btn-sm btn-outline-success">{{ c.next_action }} {{ icon('arrow-right') }}</button>
               </form>
             {% else %}—{% endif %}
           </td>

@@ -104,7 +104,7 @@
     <div class="container">
         <div class="card card-verify">
             <div class="card-header">
-                <h2>📧 Verify Your Email</h2>
+                <h2>{{ icon('mail') }} Verify Your Email</h2>
                 <p>Didn't receive your verification link?</p>
             </div>
             <div class="card-body">
@@ -121,7 +121,7 @@
                 {% endwith %}
 
                 <div class="info-box">
-                    <strong>📌 How it works:</strong><br>
+                    <strong>{{ icon('pin') }} How it works:</strong><br>
                     Enter the email you registered with, and we'll send you a new verification link. 
                     Click the link in your email to verify your account.
                 </div>
@@ -136,7 +136,7 @@
 
                     <!-- Submit -->
                     <button type="submit" class="btn btn-primary btn-resend">
-                        Resend Verification Email 📨
+                        Resend Verification Email {{ icon('mail') }}
                     </button>
                 </form>
 

@@ -7,28 +7,31 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --dark:   #1A1A2E;
-      --gold:   #D4A843;
-      --gold2:  #F0C060;
-      --light:  #F8F9FC;
-      --text:   #2D3748;
-      --muted:  #718096;
+      --dark:   #14161F;
+      --gold:   #B08A3E;
+      --gold2:  #D9BC7C;
+      --light:  #F7F4EE;
+      --text:   #23262F;
+      --muted:  #6B6F7B;
+      --line:   #E6E0D2;
+      --font-display: 'Fraunces', 'Georgia', serif;
     }
 
     * { box-sizing: border-box; }
     body { font-family: 'Inter', sans-serif; color: var(--text); background: #fff; margin: 0; }
+    h1, h2, h3, .section-title, .pkg-name, .pkg-price, .hero-stat-val { font-family: var(--font-display); }
 
     /* ── NAVBAR ── */
     .pub-nav {
       position: sticky; top: 0; z-index: 999;
-      background: rgba(26,26,46,.97);
+      background: rgba(20,22,31,.95);
       backdrop-filter: blur(8px);
       padding: 14px 0;
     }
-    .pub-nav .brand { font-size: 1.25rem; font-weight: 800; color: #fff; text-decoration: none; }
+    .pub-nav .brand { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; color: #fff; text-decoration: none; }
     .pub-nav .brand span { color: var(--gold); }
     .pub-nav .tagline { font-size: .7rem; color: var(--gold2); letter-spacing: .05em; }
     .pub-nav .nav-links a {
@@ -53,21 +56,21 @@
 
     .btn-nav-login {
       background: transparent; border: 1.5px solid var(--gold);
-      color: var(--gold) !important; border-radius: 8px;
+      color: var(--gold) !important; border-radius: 4px;
       padding: 6px 16px !important; font-weight: 600 !important;
       transition: all .2s !important;
     }
     .btn-nav-login:hover { background: var(--gold) !important; color: var(--dark) !important; }
     .btn-nav-register {
       background: var(--gold); border: none; color: var(--dark) !important;
-      border-radius: 8px; padding: 6px 16px !important;
+      border-radius: 4px; padding: 6px 16px !important;
       font-weight: 700 !important; transition: all .2s !important;
     }
     .btn-nav-register:hover { background: var(--gold2) !important; }
 
     /* ── HERO ── */
     .hero {
-      background: linear-gradient(135deg, var(--dark) 0%, #2D2D5E 60%, #1A1A2E 100%);
+      background: var(--dark);
       min-height: 92vh;
       display: flex; align-items: center;
       position: relative; overflow: hidden;
@@ -75,60 +78,81 @@
     .hero::before {
       content: '';
       position: absolute; inset: 0;
-      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      background-image: repeating-linear-gradient(180deg, rgba(217,188,124,.05) 0, rgba(217,188,124,.05) 1px, transparent 1px, transparent 96px);
     }
     .hero-badge {
-      display: inline-block;
-      background: rgba(212,168,67,.15); border: 1px solid rgba(212,168,67,.4);
-      color: var(--gold2); font-size: .75rem; font-weight: 600;
-      padding: 5px 14px; border-radius: 50px; letter-spacing: .08em;
-      text-transform: uppercase; margin-bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent; border: 1px solid rgba(217,188,124,.4);
+      color: var(--gold2); font-size: .72rem; font-weight: 600;
+      padding: 6px 14px; border-radius: 3px; letter-spacing: .1em;
+      text-transform: uppercase; margin-bottom: 24px;
     }
     .hero h1 {
-      font-size: clamp(2.2rem, 5vw, 3.8rem);
-      font-weight: 800; color: #fff; line-height: 1.15;
-      margin-bottom: 20px;
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 600; color: #fff; line-height: 1.1;
+      margin-bottom: 22px; letter-spacing: -.01em;
     }
-    .hero h1 span { color: var(--gold); }
+    .hero h1 span { color: var(--gold); font-style: italic; font-weight: 500; }
     .hero p {
-      font-size: 1.1rem; color: rgba(255,255,255,.7);
-      max-width: 520px; line-height: 1.7; margin-bottom: 36px;
+      font-size: 1.05rem; color: rgba(255,255,255,.65);
+      max-width: 500px; line-height: 1.7; margin-bottom: 36px;
     }
     .btn-hero-primary {
       background: var(--gold); color: var(--dark);
-      font-weight: 700; font-size: 1rem;
-      padding: 14px 32px; border-radius: 10px;
+      font-weight: 700; font-size: .95rem;
+      padding: 14px 30px; border-radius: 4px;
       text-decoration: none; border: none;
       transition: all .2s; display: inline-block;
     }
     .btn-hero-primary:hover { background: var(--gold2); color: var(--dark); transform: translateY(-2px); }
     .btn-hero-secondary {
       background: transparent; color: #fff;
-      font-weight: 600; font-size: 1rem;
-      padding: 14px 32px; border-radius: 10px;
-      text-decoration: none; border: 1.5px solid rgba(255,255,255,.3);
+      font-weight: 600; font-size: .95rem;
+      padding: 14px 30px; border-radius: 4px;
+      text-decoration: none; border: 1.5px solid rgba(255,255,255,.25);
       transition: all .2s; display: inline-block;
     }
     .btn-hero-secondary:hover { border-color: var(--gold); color: var(--gold); }
     .hero-stats {
       display: flex; gap: 32px; margin-top: 48px;
-      padding-top: 32px; border-top: 1px solid rgba(255,255,255,.1);
+      padding-top: 28px; border-top: 1px solid rgba(255,255,255,.12);
     }
-    .hero-stat-val { font-size: 1.8rem; font-weight: 800; color: var(--gold); }
-    .hero-stat-lbl { font-size: .75rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .06em; }
-    .hero-image-wrap {
-      position: relative; text-align: center;
+    .hero-stat-val { font-size: 1.7rem; font-weight: 600; color: var(--gold); display: flex; align-items: center; gap: 4px; }
+    .hero-stat-lbl { font-size: .72rem; color: rgba(255,255,255,.45); text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+
+    /* ── Hero signature: the program card ── */
+    .hero-image-wrap { position: relative; padding: 20px 0 20px 40px; }
+    .program-card {
+      background: var(--light);
+      border-radius: 2px;
+      padding: 40px 34px;
+      box-shadow: 0 30px 70px -20px rgba(0,0,0,.5);
+      transform: rotate(1.2deg);
+      position: relative;
     }
+    .program-card::before {
+      content: '';
+      position: absolute; left: 22px; top: 0; bottom: 0; width: 1px;
+      background: repeating-linear-gradient(180deg, var(--gold) 0 6px, transparent 6px 12px);
+      opacity: .5;
+    }
+    .program-card .pc-eyebrow { font-size: .68rem; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; padding-left: 22px; }
+    .program-card .pc-title { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; color: var(--dark); margin-bottom: 4px; padding-left: 22px; }
+    .program-card .pc-sub { font-size: .8rem; color: var(--muted); margin-bottom: 22px; padding-left: 22px; }
+    .program-card .pc-row { display: flex; align-items: center; gap: 10px; padding: 9px 0 9px 22px; border-top: 1px solid var(--line); font-size: .82rem; color: var(--text); }
+    .program-card .pc-row:first-of-type { border-top: none; }
+    .program-card .pc-row .pc-check { color: var(--gold); flex-shrink: 0; }
     .hero-floater {
-      background: rgba(255,255,255,.07); backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 16px; padding: 16px 20px;
-      color: #fff; font-size: .8rem;
-      position: absolute;
+      background: rgba(20,22,31,.9); backdrop-filter: blur(10px);
+      border: 1px solid rgba(217,188,124,.3);
+      border-radius: 4px; padding: 13px 18px;
+      color: #fff; font-size: .78rem;
+      position: absolute; display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 12px 28px rgba(0,0,0,.35);
     }
-    .hero-floater.f1 { top: 10%; left: -10%; }
-    .hero-floater.f2 { bottom: 15%; right: -5%; }
-    .hero-emoji { font-size: 7rem; display: block; line-height: 1; }
+    .hero-floater .me-icon { color: var(--gold); }
+    .hero-floater.f1 { top: -6%; right: 4%; }
+    .hero-floater.f2 { bottom: -4%; left: -6%; }
 
     /* ── SECTIONS ── */
     section { padding: 80px 0; }
@@ -136,58 +160,68 @@
       font-size: .75rem; font-weight: 700; color: var(--gold);
       text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px;
     }
-    .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; color: var(--dark); margin-bottom: 14px; }
+    .section-title { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 600; color: var(--dark); margin-bottom: 14px; }
     .section-sub { font-size: 1rem; color: var(--muted); max-width: 520px; line-height: 1.7; }
 
     /* ── SERVICES ── */
     .services { background: var(--light); }
     .service-card {
-      background: #fff; border-radius: 16px;
-      padding: 32px 28px; height: 100%;
-      border: 1px solid #EEF0F6;
-      transition: all .25s;
-      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+      background: #fff; border-radius: 3px;
+      padding: 30px 26px; height: 100%;
+      border: 1px solid var(--line);
+      border-top: 2.5px solid transparent;
+      transition: all .2s;
     }
-    .service-card:hover { transform: translateY(-6px); box-shadow: 0 12px 32px rgba(0,0,0,.1); border-color: var(--gold); }
-    .service-icon { font-size: 2.4rem; margin-bottom: 16px; }
-    .service-card h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--dark); }
+    .service-card:hover { border-top-color: var(--gold); }
+    .service-icon {
+      width: 42px; height: 42px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--line); border-radius: 3px;
+      color: var(--gold);
+      margin-bottom: 18px;
+    }
+    .service-card h4 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; margin-bottom: 10px; color: var(--dark); }
     .service-card p { font-size: .875rem; color: var(--muted); line-height: 1.65; margin: 0; }
 
     /* ── PACKAGES ── */
     .pkg-card {
-      border-radius: 20px; padding: 36px 28px; height: 100%;
-      border: 2px solid #EEF0F6; position: relative;
-      transition: all .25s; background: #fff;
+      border-radius: 3px; padding: 36px 30px; height: 100%;
+      border: 1px solid var(--line); position: relative;
+      transition: all .2s; background: #fff;
     }
     .pkg-card.featured {
       border-color: var(--gold);
-      background: linear-gradient(160deg, #FFFBF0, #fff);
-      box-shadow: 0 8px 32px rgba(212,168,67,.15);
+      background: var(--dark);
     }
+    .pkg-card.featured .pkg-name,
+    .pkg-card.featured .pkg-price,
+    .pkg-card.featured .pkg-features li { color: #fff; }
+    .pkg-card.featured .pkg-desc { color: rgba(255,255,255,.55); }
+    .pkg-card.featured .pkg-features li { border-color: rgba(255,255,255,.12); }
     .pkg-badge {
-      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      position: absolute; top: 0; right: 0;
       background: var(--gold); color: var(--dark);
-      font-size: .7rem; font-weight: 700; padding: 4px 16px;
-      border-radius: 50px; text-transform: uppercase; letter-spacing: .08em;
+      font-size: .65rem; font-weight: 700; padding: 5px 14px;
+      text-transform: uppercase; letter-spacing: .1em;
       white-space: nowrap;
     }
-    .pkg-name { font-size: 1.2rem; font-weight: 800; color: var(--dark); margin-bottom: 6px; }
-    .pkg-price { font-size: 1.8rem; font-weight: 800; color: var(--gold); margin-bottom: 4px; }
-    .pkg-price span { font-size: .9rem; font-weight: 400; color: var(--muted); }
-    .pkg-desc { font-size: .8rem; color: var(--muted); margin-bottom: 20px; }
+    .pkg-name { font-size: 1.25rem; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
+    .pkg-price { font-size: 2rem; font-weight: 600; color: var(--gold); margin-bottom: 4px; }
+    .pkg-price span { font-family: 'Inter', sans-serif; font-size: .85rem; font-weight: 400; color: var(--muted); }
+    .pkg-desc { font-size: .8rem; color: var(--muted); margin-bottom: 22px; }
     .pkg-features { list-style: none; padding: 0; margin: 0 0 28px; }
-    .pkg-features li { font-size: .85rem; color: var(--text); padding: 6px 0; border-bottom: 1px solid #F0F2F7; display: flex; gap: 10px; align-items: flex-start; }
+    .pkg-features li { font-size: .85rem; color: var(--text); padding: 8px 0; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: flex-start; }
     .pkg-features li:last-child { border: none; }
-    .pkg-features li::before { content: '✓'; color: var(--gold); font-weight: 700; flex-shrink: 0; }
+    .pkg-features li::before { content: ''; width: 15px; height: 15px; margin-top: 3px; flex-shrink: 0; background: var(--gold); -webkit-mask: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M4.5 12.5 9 17l10.5-10.5%22/></svg>') center/contain no-repeat; mask: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><path d=%22M4.5 12.5 9 17l10.5-10.5%22/></svg>') center/contain no-repeat; }
     .btn-pkg {
       display: block; text-align: center; text-decoration: none;
       background: var(--dark); color: #fff;
-      padding: 12px; border-radius: 10px; font-weight: 600; font-size: .875rem;
+      padding: 12px; border-radius: 3px; font-weight: 600; font-size: .85rem;
       transition: all .2s;
     }
     .btn-pkg:hover { background: var(--gold); color: var(--dark); }
     .pkg-card.featured .btn-pkg { background: var(--gold); color: var(--dark); }
-    .pkg-card.featured .btn-pkg:hover { background: var(--dark); color: #fff; }
+    .pkg-card.featured .btn-pkg:hover { background: #fff; color: var(--dark); }
 
     /* ── PORTFOLIO ── */
     .portfolio { background: var(--dark); }
@@ -195,60 +229,71 @@
     .portfolio .section-label { color: var(--gold2); }
     .portfolio .section-sub { color: rgba(255,255,255,.6); }
     .port-card {
-      border-radius: 16px; overflow: hidden;
-      background: rgba(255,255,255,.06);
+      border-radius: 3px; overflow: hidden;
+      background: rgba(255,255,255,.04);
       border: 1px solid rgba(255,255,255,.1);
-      transition: all .25s;
+      border-top: 2.5px solid transparent;
+      transition: all .2s;
     }
-    .port-card:hover { transform: translateY(-4px); border-color: var(--gold); }
+    .port-card:hover { border-top-color: var(--gold); }
     .port-img {
-      height: 200px; display: flex; align-items: center; justify-content: center;
-      font-size: 4rem; background: rgba(255,255,255,.04);
+      height: 180px; display: flex; align-items: center; justify-content: center;
+      color: var(--gold2); background: rgba(255,255,255,.03);
+      border-bottom: 1px solid rgba(255,255,255,.08);
     }
-    .port-body { padding: 20px; }
-    .port-type { font-size: .7rem; color: var(--gold); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 6px; }
-    .port-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .port-img .me-icon { width: 34px; height: 34px; }
+    .port-body { padding: 22px 20px; }
+    .port-type { font-size: .68rem; color: var(--gold2); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+    .port-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; color: #fff; margin-bottom: 6px; }
     .port-desc { font-size: .8rem; color: rgba(255,255,255,.5); line-height: 1.6; margin: 0; }
 
     /* ── WHY US ── */
     .whyus { background: var(--light); }
     .why-item { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 28px; }
     .why-icon {
-      width: 48px; height: 48px; border-radius: 12px;
-      background: rgba(212,168,67,.12); display: flex; align-items: center;
-      justify-content: center; font-size: 1.4rem; flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 3px;
+      border: 1px solid var(--line);
+      background: #fff; display: flex; align-items: center;
+      justify-content: center; color: var(--gold); flex-shrink: 0;
     }
-    .why-item h5 { font-size: .95rem; font-weight: 700; margin-bottom: 4px; color: var(--dark); }
+    .why-item h5 { font-family: var(--font-display); font-size: 1rem; font-weight: 600; margin-bottom: 4px; color: var(--dark); }
     .why-item p { font-size: .825rem; color: var(--muted); line-height: 1.6; margin: 0; }
 
     /* ── TESTIMONIALS ── */
     .testi-card {
-      background: #fff; border-radius: 16px; padding: 28px;
-      border: 1px solid #EEF0F6; height: 100%;
-      box-shadow: 0 2px 12px rgba(0,0,0,.04);
+      background: #fff; border-radius: 3px; padding: 28px;
+      border: 1px solid var(--line); height: 100%;
     }
     .testi-stars { color: var(--gold); font-size: .9rem; margin-bottom: 12px; }
-    .testi-text { font-size: .875rem; color: var(--text); line-height: 1.7; margin-bottom: 20px; font-style: italic; }
+    .testi-text { font-family: var(--font-display); font-style: italic; font-size: .95rem; color: var(--text); line-height: 1.6; margin-bottom: 20px; }
     .testi-name { font-size: .85rem; font-weight: 700; color: var(--dark); }
     .testi-event { font-size: .75rem; color: var(--muted); }
 
     /* ── CTA ── */
     .cta-section {
-      background: linear-gradient(135deg, var(--dark), #2D2D5E);
-      padding: 80px 0; text-align: center;
+      background: var(--dark);
+      padding: 90px 0; text-align: center;
+      position: relative; overflow: hidden;
     }
-    .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; color: #fff; margin-bottom: 14px; }
-    .cta-section h2 span { color: var(--gold); }
-    .cta-section p { color: rgba(255,255,255,.65); font-size: 1rem; margin-bottom: 32px; }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: repeating-linear-gradient(180deg, rgba(217,188,124,.05) 0, rgba(217,188,124,.05) 1px, transparent 1px, transparent 96px);
+    }
+    .cta-section .container { position: relative; }
+    .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 600; color: #fff; margin-bottom: 14px; }
+    .cta-section h2 span { color: var(--gold); font-style: italic; font-weight: 500; }
+    .cta-section p { color: rgba(255,255,255,.6); font-size: 1rem; margin-bottom: 32px; }
 
     /* ── FOOTER ── */
     footer {
-      background: #111122; padding: 40px 0 24px;
-      color: rgba(255,255,255,.5); font-size: .8rem;
+      background: var(--dark); padding: 40px 0 24px;
+      color: rgba(255,255,255,.45); font-size: .8rem;
+      border-top: 1px solid rgba(255,255,255,.08);
     }
-    footer .brand { font-size: 1.1rem; font-weight: 800; color: #fff; }
+    footer .brand { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; color: #fff; }
     footer .brand span { color: var(--gold); }
-    footer a { color: rgba(255,255,255,.5); text-decoration: none; }
+    footer a { color: rgba(255,255,255,.45); text-decoration: none; }
     footer a:hover { color: var(--gold); }
     footer hr { border-color: rgba(255,255,255,.08); }
   </style>
@@ -258,7 +303,7 @@
 <nav class="pub-nav">
   <div class="container d-flex align-items-center justify-content-between">
     <a href="#" class="brand">
-      <span>⚡</span> {{ APP_NAME }}
+      <span>{{ icon('bolt') }}</span> {{ APP_NAME }}
       <div class="tagline">{{ APP_TAGLINE }}</div>
     </a>
     <div class="nav-links d-none d-md-flex align-items-center gap-1">
@@ -271,35 +316,35 @@
       {% if current_user.is_authenticated %}
         <div class="dropdown ms-2">
             <button class="btn-nav-login dropdown-toggle" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
-                👋 Welcome, {{ current_user.name.split(' ')[0] }}
+                {{ icon('smile') }} Welcome, {{ current_user.name.split(' ')[0] }}
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userMenu">
                 <li>
                   <a class="dropdown-item py-2" href="{{ url_for('auth.profile') }}">
-                    <span class="me-2">⚙️</span> Edit Profile
+                    <span class="me-2">{{ icon('settings') }}</span> Edit Profile
                   </a>
                 </li>
                 <li>
                   <a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#orderRequestModal">
-                    <span class="me-2">📦</span> Request a Package
+                    <span class="me-2">{{ icon('box') }}</span> Request a Package
                   </a>
                 </li>
               <li>
                 <a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#reviewModal">
-                    <span class="me-2">🌟</span> Leave a Review
+                    <span class="me-2">{{ icon('star') }}</span> Leave a Review
               </a>
               </li>
                 {% if current_user.role != 'client' %}
                 <li>
                   <a class="dropdown-item py-2" href="{{ url_for('dashboard.index') }}">
-                    <span class="me-2">📊</span> Admin Dashboard
+                    <span class="me-2">{{ icon('bar-chart') }}</span> Admin Dashboard
                   </a>
                 </li>
                 {% endif %}
                 <li><hr class="dropdown-divider"></li>
                 <li>
                   <a class="dropdown-item py-2 text-danger" href="{{ url_for('auth.logout') }}">
-                    <span class="me-2">🚪</span> Logout
+                    <span class="me-2">{{ icon('logout') }}</span> Logout
                   </a>
                 </li>
             </ul>
@@ -346,7 +391,7 @@
   <div class="container position-relative">
     <div class="row align-items-center">
       <div class="col-lg-6">
-        <div class="hero-badge">✨ Premium Event Management</div>
+        <div class="hero-badge">{{ icon('sparkle') }} Premium Event Management</div>
         <h1>
           We Turn Your<br>
           Vision Into a<br>
@@ -358,9 +403,9 @@
         <div class="d-flex flex-wrap gap-3">
           <a href="#packages" class="btn-hero-primary">View Packages</a>
           {% if current_user.is_authenticated %}
-            <a href="#" class="btn-hero-secondary" data-bs-toggle="modal" data-bs-target="#orderRequestModal">Start Planning Now →</a>
+            <a href="#" class="btn-hero-secondary" data-bs-toggle="modal" data-bs-target="#orderRequestModal">Start Planning Now {{ icon('arrow-right') }}</a>
           {% else %}
-            <a href="{{ url_for('auth.login') }}" class="btn-hero-secondary">Client Portal →</a>
+            <a href="{{ url_for('auth.login') }}" class="btn-hero-secondary">Client Portal {{ icon('arrow-right') }}</a>
           {% endif %}
         </div>
         <div class="hero-stats">
@@ -373,23 +418,34 @@
             <div class="hero-stat-lbl">Happy Clients</div>
           </div>
           <div>
-            <div class="hero-stat-val">5★</div>
+            <div class="hero-stat-val">5.0 {{ icon('star', size=16) }}</div>
             <div class="hero-stat-lbl">Avg Rating</div>
           </div>
         </div>
       </div>
       <div class="col-lg-6 d-none d-lg-block">
-        <div class="hero-image-wrap" style="padding: 40px 0;">
-          <span class="hero-emoji">🎊</span>
+        <div class="hero-image-wrap">
+          <div class="program-card">
+            <div class="pc-eyebrow">Order of the Day</div>
+            <div class="pc-title">Santos &amp; Reyes</div>
+            <div class="pc-sub">September 12 · Grand Ballroom, Makati</div>
+            <div class="pc-row"><span class="pc-check">{{ icon('check', size=15) }}</span> Ceremony — 4:00 PM</div>
+            <div class="pc-row"><span class="pc-check">{{ icon('check', size=15) }}</span> Cocktail Hour — 5:00 PM</div>
+            <div class="pc-row"><span class="pc-check">{{ icon('check', size=15) }}</span> Reception — 6:30 PM</div>
+          </div>
           <div class="hero-floater f1">
-            <div style="font-size:1.2rem;">📅</div>
-            <div style="font-weight:700;">Next Event</div>
-            <div style="color:var(--gold2);">Tomorrow, 3PM</div>
+            {{ icon('calendar', size=17) }}
+            <div>
+              <div style="font-weight:700;">Next Event</div>
+              <div style="color:var(--gold2);">Tomorrow, 3PM</div>
+            </div>
           </div>
           <div class="hero-floater f2">
-            <div style="font-size:1.2rem;">✅</div>
-            <div style="font-weight:700;">All Set!</div>
-            <div style="color:rgba(255,255,255,.6);">12 tasks done</div>
+            {{ icon('check-circle', size=17) }}
+            <div>
+              <div style="font-weight:700;">All Set</div>
+              <div style="color:rgba(255,255,255,.55);">12 tasks done</div>
+            </div>
           </div>
         </div>
       </div>
@@ -407,28 +463,28 @@
     <div class="row g-4">
       <div class="col-6 col-lg-3">
         <div class="service-card">
-          <div class="service-icon">💍</div>
+          <div class="service-icon">{{ icon('gift') }}</div>
           <h4>Weddings</h4>
           <p>Intimate ceremonies to grand receptions — every detail handled with love.</p>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="service-card">
-          <div class="service-icon">🎂</div>
+          <div class="service-icon">{{ icon('gift') }}</div>
           <h4>Debuts & Birthdays</h4>
           <p>Make milestone celebrations unforgettable with our signature styling.</p>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="service-card">
-          <div class="service-icon">🏢</div>
+          <div class="service-icon">{{ icon('building') }}</div>
           <h4>Corporate Events</h4>
           <p>Conferences, launches, and team events that leave a lasting impression.</p>
         </div>
       </div>
       <div class="col-6 col-lg-3">
         <div class="service-card">
-          <div class="service-icon">🎉</div>
+          <div class="service-icon">{{ icon('party') }}</div>
           <h4>Special Occasions</h4>
           <p>Reunions, graduations, christenings — no event is too big or too small.</p>
         </div>
@@ -447,7 +503,7 @@
     <div class="row g-4 justify-content-center">
       <div class="col-12 col-md-6 col-lg-3">
         <div class="pkg-card">
-          <div class="pkg-name">🥈 Silver</div>
+          <div class="pkg-name">{{ icon('award') }} Silver</div>
           <div class="pkg-price">₱25,000 <span>/ event</span></div>
           <div class="pkg-desc">Perfect for small, intimate gatherings.</div>
           <ul class="pkg-features">
@@ -463,7 +519,7 @@
       <div class="col-12 col-md-6 col-lg-3">
         <div class="pkg-card featured">
           <div class="pkg-badge">Most Popular</div>
-          <div class="pkg-name">🥇 Gold</div>
+          <div class="pkg-name">{{ icon('award') }} Gold</div>
           <div class="pkg-price">₱55,000 <span>/ event</span></div>
           <div class="pkg-desc">Our most-loved package for mid-size events.</div>
           <ul class="pkg-features">
@@ -479,7 +535,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-3">
         <div class="pkg-card">
-          <div class="pkg-name">💎 Platinum</div>
+          <div class="pkg-name">{{ icon('gem') }} Platinum</div>
           <div class="pkg-price">₱95,000 <span>/ event</span></div>
           <div class="pkg-desc">For large-scale, premium celebrations.</div>
           <ul class="pkg-features">
@@ -495,7 +551,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-3">
         <div class="pkg-card">
-          <div class="pkg-name">⚡ Custom</div>
+          <div class="pkg-name">{{ icon('bolt') }} Custom</div>
           <div class="pkg-price">Let's Talk</div>
           <div class="pkg-desc">Tailor-made for your unique vision.</div>
           <ul class="pkg-features">
@@ -523,7 +579,7 @@
     <div class="row g-4">
       <div class="col-12 col-md-6 col-lg-4">
         <div class="port-card">
-          <div class="port-img">💍</div>
+          <div class="port-img">{{ icon('gift') }}</div>
           <div class="port-body">
             <div class="port-type">Wedding</div>
             <div class="port-title">The Cruz–Santos Wedding</div>
@@ -533,7 +589,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-4">
         <div class="port-card">
-          <div class="port-img">🎂</div>
+          <div class="port-img">{{ icon('gift') }}</div>
           <div class="port-body">
             <div class="port-type">Debut</div>
             <div class="port-title">Sophia's Grand Debut</div>
@@ -543,7 +599,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-4">
         <div class="port-card">
-          <div class="port-img">🏢</div>
+          <div class="port-img">{{ icon('building') }}</div>
           <div class="port-body">
             <div class="port-type">Corporate</div>
             <div class="port-title">TechCorp Product Launch</div>
@@ -553,7 +609,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-4">
         <div class="port-card">
-          <div class="port-img">🥂</div>
+          <div class="port-img">{{ icon('party') }}</div>
           <div class="port-body">
             <div class="port-type">Anniversary</div>
             <div class="port-title">Dela Rosa 25th Anniversary</div>
@@ -563,7 +619,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-4">
         <div class="port-card">
-          <div class="port-img">🎓</div>
+          <div class="port-img">{{ icon('award') }}</div>
           <div class="port-body">
             <div class="port-type">Graduation</div>
             <div class="port-title">Batch 2024 Grad Party</div>
@@ -573,7 +629,7 @@
       </div>
       <div class="col-12 col-md-6 col-lg-4">
         <div class="port-card">
-          <div class="port-img">🙏</div>
+          <div class="port-img">{{ icon('heart') }}</div>
           <div class="port-body">
             <div class="port-type">Christening</div>
             <div class="port-title">Baby Lorenzo's Christening</div>
@@ -595,28 +651,28 @@
       </div>
       <div class="col-lg-7">
         <div class="why-item">
-          <div class="why-icon">🎯</div>
+          <div class="why-icon">{{ icon('award') }}</div>
           <div>
             <h5>Attention to Detail</h5>
             <p>We obsess over every element — from table settings to sound checks — so nothing is left to chance.</p>
           </div>
         </div>
         <div class="why-item">
-          <div class="why-icon">💬</div>
+          <div class="why-icon">{{ icon('message') }}</div>
           <div>
             <h5>Dedicated Client Portal</h5>
             <p>Track your event progress, payments, and timelines in real-time through your personal client dashboard.</p>
           </div>
         </div>
         <div class="why-item">
-          <div class="why-icon">🤝</div>
+          <div class="why-icon">{{ icon('handshake') }}</div>
           <div>
             <h5>Trusted Supplier Network</h5>
             <p>We work with the best photographers, caterers, and florists — so you always get top quality.</p>
           </div>
         </div>
         <div class="why-item">
-          <div class="why-icon">📱</div>
+          <div class="why-icon">{{ icon('phone') }}</div>
           <div>
             <h5>Always Reachable</h5>
             <p>Your coordinator is just a message away. We're here whenever you need us, day or night.</p>
@@ -639,7 +695,7 @@
       <div class="col-12 col-md-6 col-lg-4">
         <div class="testi-card h-100 shadow-sm border-0" style="border-radius: 15px; background: #fff; padding: 30px;">
           <div class="testi-stars" style="color: var(--gold); margin-bottom: 15px; font-size: 0.9rem;">
-            {% for i in range(rev.rating) %}★{% endfor %}
+            {% for i in range(rev.rating) %}{{ icon('star') }}{% endfor %}
           </div>
           <p class="testi-text" style="font-style: italic; color: var(--text); line-height: 1.7; margin-bottom: 20px;">
             "{{ rev.comment }}"
@@ -654,7 +710,7 @@
       </div>
       {% else %}
       <div class="col-12 text-center py-5">
-        <p class="text-muted">Real stories from our clients will appear here soon. ✨</p>
+        <p class="text-muted">Real stories from our clients will appear here soon. {{ icon('sparkle') }}</p>
       </div>
       {% endfor %}
     </div>
@@ -662,7 +718,7 @@
     {% if current_user.is_authenticated %}
     <div class="text-center mt-5">
       <button class="btn btn-outline-gold btn-sm px-4" data-bs-toggle="modal" data-bs-target="#reviewModal">
-        🌟 Share Your Experience
+        {{ icon('star') }} Share Your Experience
       </button>
     </div>
     {% endif %}
@@ -688,7 +744,7 @@
   <div class="container">
     <div class="row g-4 mb-4">
       <div class="col-12 col-md-4">
-        <div class="brand mb-2"><span>⚡</span> {{ APP_NAME }}</div>
+        <div class="brand mb-2"><span>{{ icon('bolt') }}</span> {{ APP_NAME }}</div>
         <div style="font-size:.8rem; color:rgba(255,255,255,.4); line-height:1.7;">
           Creating unforgettable memories<br>one event at a time.
         </div>
@@ -708,14 +764,14 @@
       </div>
       <div class="col-12 col-md-4">
         <div style="color:rgba(255,255,255,.7);font-weight:600;font-size:.8rem;margin-bottom:10px;">Contact Us</div>
-        <div>📧 hello@metroevents.com</div>
-        <div style="margin-top:4px;">📞 +63 912 345 6789</div>
-        <div style="margin-top:4px;">📍 Metro Manila, Philippines</div>
+        <div>{{ icon('mail') }} hello@metroevents.com</div>
+        <div style="margin-top:4px;">{{ icon('phone') }} +63 912 345 6789</div>
+        <div style="margin-top:4px;">{{ icon('pin') }} Metro Manila, Philippines</div>
       </div>
     </div>
     <hr>
     <div class="text-center" style="font-size:.75rem;">
-      © {{ 2026 }} {{ APP_NAME }}. All rights reserved. Made with ❤️ in the Philippines.
+      © {{ 2026 }} {{ APP_NAME }}. All rights reserved. Made with {{ icon('heart') }} in the Philippines.
     </div>
   </div>
 </footer>
@@ -748,10 +804,10 @@
               <div class="col-md-6 mb-3">
                   <label class="form-label fw-bold small text-uppercase">Package</label>
                   <select name="package_type" class="form-select border-0 bg-light p-3" required>
-                      <option value="Silver">🥈 Silver</option>
-                      <option value="Gold">🥇 Gold</option>
-                      <option value="Platinum">💎 Platinum</option>
-                      <option value="Custom">⚡ Custom</option>
+                      <option value="Silver">{{ icon('award') }} Silver</option>
+                      <option value="Gold">{{ icon('award') }} Gold</option>
+                      <option value="Platinum">{{ icon('gem') }} Platinum</option>
+                      <option value="Custom">{{ icon('bolt') }} Custom</option>
                   </select>
               </div>
               <div class="col-md-6 mb-3">
@@ -771,7 +827,7 @@
           </div>
         </div>
         <div class="modal-footer border-0 p-4 pt-0">
-          <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Submit Request ⚡</button>
+          <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Submit Request {{ icon('bolt') }}</button>
         </div>
       </form>
     </div>
@@ -793,11 +849,11 @@
             <div class="mb-3">
                 <label class="form-label fw-bold small text-uppercase">Rating</label>
                 <select name="rating" class="form-select border-0 bg-light p-3" style="border-radius: 10px;" required>
-                    <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
-                    <option value="4">⭐⭐⭐⭐ (Great)</option>
-                    <option value="3">⭐⭐⭐ (Good)</option>
-                    <option value="2">⭐⭐ (Fair)</option>
-                    <option value="1">⭐ (Poor)</option>
+                    <option value="5">{{ icon('star') }}{{ icon('star') }}{{ icon('star') }}{{ icon('star') }}{{ icon('star') }} (Excellent)</option>
+                    <option value="4">{{ icon('star') }}{{ icon('star') }}{{ icon('star') }}{{ icon('star') }} (Great)</option>
+                    <option value="3">{{ icon('star') }}{{ icon('star') }}{{ icon('star') }} (Good)</option>
+                    <option value="2">{{ icon('star') }}{{ icon('star') }} (Fair)</option>
+                    <option value="1">{{ icon('star') }} (Poor)</option>
                 </select>
             </div>
             
@@ -809,7 +865,7 @@
         </div>
         <div class="modal-footer border-0 p-4 pt-0">
           <button type="button" class="btn btn-light px-4 py-2" style="border-radius: 10px;" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Post Review ✨</button>
+          <button type="submit" class="btn-hero-primary px-4 py-2 m-0 shadow-sm" style="width: auto; background: var(--gold); border: none; border-radius: 10px; font-weight: 700; color: var(--dark);">Post Review {{ icon('sparkle') }}</button>
         </div>
       </form>
     </div>

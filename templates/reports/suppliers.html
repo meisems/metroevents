@@ -2,8 +2,8 @@
 {% block title %}Supplier Performance — Metro Events{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center gap-2 mb-3">
-  <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-secondary">← Reports</a>
-  <h2>🏭 Supplier Performance</h2>
+  <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-secondary">{{ icon('arrow-left') }} Reports</a>
+  <h2>{{ icon('building') }} Supplier Performance</h2>
 </div>
 <div class="card shadow-sm">
   <div class="card-body p-0">
@@ -21,7 +21,7 @@
             <a href="{{ url_for('suppliers.detail', supplier_id=s.id) }}">
               {{ s.company_name }}
             </a>
-            {% if s.is_preferred %}<span class="badge bg-warning text-dark ms-1">⭐</span>{% endif %}
+            {% if s.is_preferred %}<span class="badge bg-warning text-dark ms-1">{{ icon('star') }}</span>{% endif %}
           </td>
           <td>{{ s.category or '—' }}</td>
           <td class="text-success">{{ s.on_time_count }}</td>
@@ -36,7 +36,7 @@
               <small>{{ s.reliability_pct }}%</small>
             </div>
           </td>
-          <td class="text-warning">{{ '★' * (s.rating|int) }}</td>
+          <td class="text-warning">{{ (s.rating|int)|stars }}</td>
         </tr>
         {% endfor %}
       </tbody>

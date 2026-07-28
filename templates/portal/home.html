@@ -3,13 +3,13 @@
 {% block content %}
 <div class="text-center mb-4">
   <img src="/static/img/logo.png" alt="Metro Events" height="60" onerror="this.style.display='none'">
-  <h2 class="mt-2">Welcome, {{ current_user.name }}! ✨</h2>
+  <h2 class="mt-2">Welcome, {{ current_user.name }}! {{ icon('sparkle') }}</h2>
   <p class="text-muted">Here are your upcoming events with Metro Events.</p>
 </div>
 
 {% if not events %}
 <div class="alert alert-info text-center">
-  No events found yet. Contact us at Metro Events to start planning! 🎉
+  No events found yet. Contact us at Metro Events to start planning! {{ icon('party') }}
 </div>
 {% else %}
 <div class="row g-3">
@@ -22,15 +22,15 @@
           <span class="badge bg-{{ event.status_color }}">{{ event.status.replace('_',' ').title() }}</span>
         </div>
         <p class="text-muted mb-1">
-          📅 {{ event.event_date | dateformat }}
+          {{ icon('calendar') }} {{ event.event_date | dateformat }}
           {% if event.days_until > 0 %}
           <small class="text-{% if event.days_until <= 7 %}warning{% else %}muted{% endif %}">
             ({{ event.days_until }} days away)
           </small>
           {% endif %}
         </p>
-        <p class="text-muted mb-1">📍 {{ event.venue_name or '—' }}</p>
-        <p class="text-muted mb-3">🎨 {{ event.package_name or '—' }}</p>
+        <p class="text-muted mb-1">{{ icon('pin') }} {{ event.venue_name or '—' }}</p>
+        <p class="text-muted mb-3">{{ icon('palette') }} {{ event.package_name or '—' }}</p>
         <a href="{{ url_for('portal.event_overview', event_id=event.id) }}"
            class="btn btn-primary">View Event Workspace</a>
       </div>

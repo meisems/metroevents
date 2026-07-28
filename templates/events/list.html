@@ -3,7 +3,7 @@
 {% block page_title %}Events{% endblock %}
 {% block breadcrumb %}Events{% endblock %}
 {% block topbar_actions %}
-  <a href="{{ url_for('events.new_event') }}" class="btn-gold">➕ New Event</a>
+  <a href="{{ url_for('events.new_event') }}" class="btn-gold">{{ icon('plus') }} New Event</a>
 {% endblock %}
 
 {% block content %}
@@ -42,7 +42,7 @@
         {% for e in events.items %}
         <tr>
           <td>
-            <a href="{{ url_for('events.detail', event_id=e.id) }}" style="font-weight:700;color:#1A1A2E;">
+            <a href="{{ url_for('events.detail', event_id=e.id) }}" style="font-weight:700;color:var(--me-ink);">
               {{ e.name }}
             </a>
           </td>
@@ -56,7 +56,7 @@
             {% if e.days_until >= 0 and e.status not in ['done','cancelled'] %}
             <div class="text-muted-sm">
               {% if e.days_until == 0 %}
-              <span style="color:#F56565;font-weight:700;">TODAY</span>
+              <span style="color:var(--me-danger);font-weight:700;">TODAY</span>
               {% elif e.days_until <= 7 %}
               <span style="color:#ECC94B;">{{ e.days_until }}d away</span>
               {% else %}
@@ -70,13 +70,13 @@
           <td><span class="badge bg-{{ e.status_color }}">{{ e.status|replace('_',' ')|title }}</span></td>
           <td>
             {% if e.balance_due > 0 %}
-            <span style="color:#F56565;font-weight:700;">{{ e.balance_due|peso }}</span>
+            <span style="color:var(--me-danger);font-weight:700;">{{ e.balance_due|peso }}</span>
             {% elif e.active_quote %}
-            <span style="color:#48BB78;font-weight:700;">PAID ✓</span>
+            <span style="color:var(--me-success);font-weight:700;">PAID {{ icon('check') }}</span>
             {% else %}—{% endif %}
           </td>
           <td>
-            <a href="{{ url_for('events.detail', event_id=e.id) }}" class="btn btn-sm btn-outline-secondary">Open →</a>
+            <a href="{{ url_for('events.detail', event_id=e.id) }}" class="btn btn-sm btn-outline-secondary">Open {{ icon('arrow-right') }}</a>
           </td>
         </tr>
         {% else %}

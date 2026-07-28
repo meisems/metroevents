@@ -3,14 +3,14 @@
 {% block page_title %}{{ 'Edit' if event else 'New' }} Event{% endblock %}
 
 {% block breadcrumb %}
-  <a href="{{ url_for('events.list_events') }}">Events</a> → {{ 'Edit' if event else 'New' }}
+  <a href="{{ url_for('events.list_events') }}">Events</a> {{ icon('arrow-right') }} {{ 'Edit' if event else 'New' }}
 {% endblock %}
 
 {% block content %}
 <div style="max-width:760px;">
   <div class="me-card">
     <div class="me-card-header">
-      <h5>{{ '✏️ Edit Event' if event else '🎉 Create New Event' }}</h5>
+      <h5>{{ icon('edit' if event else 'party') }} {{ 'Edit Event' if event else 'Create New Event' }}</h5>
     </div>
     <div class="me-card-body">
       <form method="POST">
@@ -109,9 +109,9 @@
           </div>
 
           <div class="col-md-6">
-            <label class="me-form-label">Color Palette <small class="text-muted">(comma-sep hex, e.g. #FFF, #C9A84C)</small></label>
+            <label class="me-form-label">Color Palette <small class="text-muted">(comma-sep hex, e.g. #FFF, #B08A3E)</small></label>
             <input type="text" id="colorPaletteInput" name="color_palette" class="me-form-control"
-                   placeholder="#E8C97A, #1A1A2E, #FFFFFF"
+                   placeholder="#D9BC7C, #14161F, #FFFFFF"
                    value="{{ event.color_palette if event else '' }}" />
             <div id="colorPalettePreview" class="mt-2 d-flex gap-1"></div>
           </div>

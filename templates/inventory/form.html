@@ -5,7 +5,7 @@
 {% block content %}
 <div style="max-width:620px;">
   <div class="me-card">
-    <div class="me-card-header"><h5>{{ '✏️ Edit' if item else '➕ Add' }} Item</h5></div>
+    <div class="me-card-header"><h5>{{ icon('edit' if item else 'plus') }} {{ 'Edit' if item else 'Add' }} Item</h5></div>
     <div class="me-card-body">
       <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

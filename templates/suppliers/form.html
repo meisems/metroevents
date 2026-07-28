@@ -2,8 +2,8 @@
 {% block title %}{{ 'Edit' if supplier else 'New' }} Supplier — Metro Events{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center gap-2 mb-4">
-  <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
-  <h2>{{ '✏️ Edit' if supplier else '➕ New' }} Supplier</h2>
+  <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-sm btn-outline-secondary">{{ icon('arrow-left') }} Back</a>
+  <h2>{{ icon('edit' if supplier else 'plus') }} {{ 'Edit' if supplier else 'New' }} Supplier</h2>
 </div>
 
 <div class="card shadow-sm" style="max-width:700px">
@@ -58,7 +58,7 @@
                    value="1" id="chkPreferred"
                    {% if supplier and supplier.is_preferred %}checked{% endif %}>
             <label class="form-check-label" for="chkPreferred">
-              ⭐ Mark as Preferred Supplier
+              {{ icon('star') }} Mark as Preferred Supplier
             </label>
           </div>
         </div>

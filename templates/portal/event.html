@@ -2,28 +2,28 @@
 {% block title %}{{ event.name }} — Client Portal{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center gap-2 mb-3">
-  <a href="{{ url_for('portal.home') }}" class="btn btn-sm btn-outline-secondary">← My Events</a>
+  <a href="{{ url_for('portal.home') }}" class="btn btn-sm btn-outline-secondary">{{ icon('arrow-left') }} My Events</a>
   <h2>{{ event.name }}</h2>
 </div>
 <p class="text-muted">
-  📅 {{ event.event_date | dateformat }} &nbsp;|&nbsp;
-  📍 {{ event.venue_name or '—' }} &nbsp;|&nbsp;
-  🎨 {{ event.package_name or '—' }}
+  {{ icon('calendar') }} {{ event.event_date | dateformat }} &nbsp;|&nbsp;
+  {{ icon('pin') }} {{ event.venue_name or '—' }} &nbsp;|&nbsp;
+  {{ icon('palette') }} {{ event.package_name or '—' }}
 </p>
 
 <!-- Nav tabs -->
 <ul class="nav nav-tabs mb-3" id="portalTabs">
   <li class="nav-item">
-    <a class="nav-link active" data-bs-toggle="tab" href="#tab-quote">📄 Proposal</a>
+    <a class="nav-link active" data-bs-toggle="tab" href="#tab-quote">{{ icon('file') }} Proposal</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#tab-payments">💰 Payments</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-payments">{{ icon('wallet') }} Payments</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#tab-moodboard">🖼️ Moodboard</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-moodboard">{{ icon('image') }} Moodboard</a>
   </li>
   <li class="nav-item">
-    <a class="nav-link" data-bs-toggle="tab" href="#tab-feedback">⭐ Feedback</a>
+    <a class="nav-link" data-bs-toggle="tab" href="#tab-feedback">{{ icon('star') }} Feedback</a>
   </li>
 </ul>
 
@@ -35,7 +35,7 @@
       <div class="card-header d-flex justify-content-between">
         <strong>{{ quote.label or 'v' ~ quote.version }} — {{ quote.package_name or '' }}</strong>
         {% if quote.is_approved %}
-        <span class="badge bg-success">✅ Approved by {{ quote.approved_by }}</span>
+        <span class="badge bg-success">{{ icon('check-circle') }} Approved by {{ quote.approved_by }}</span>
         {% else %}
         <span class="badge bg-warning">Pending Approval</span>
         {% endif %}
@@ -74,19 +74,19 @@
 
         <div class="d-flex gap-2 mt-3">
           <a href="{{ url_for('quotes.quote_pdf', event_id=event.id, quote_id=quote.id) }}"
-             class="btn btn-outline-secondary btn-sm">📄 Download PDF</a>
+             class="btn btn-outline-secondary btn-sm">{{ icon('file') }} Download PDF</a>
           {% if not quote.is_approved %}
           <form method="POST"
                 action="{{ url_for('portal.approve_quote', event_id=event.id, quote_id=quote.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button class="btn btn-success btn-sm">✅ Approve This Quote</button>
+            <button class="btn btn-success btn-sm">{{ icon('check-circle') }} Approve This Quote</button>
           </form>
           {% endif %}
         </div>
       </div>
     </div>
     {% else %}
-    <div class="alert alert-info">No proposal sent yet. Our team will send one soon! 😊</div>
+    <div class="alert alert-info">No proposal sent yet. Our team will send one soon! {{ icon('smile') }}</div>
     {% endif %}
   </div>
 
@@ -116,7 +116,7 @@
     <div class="mt-3">
       <div class="alert alert-info">
         <strong>Balance Remaining: {{ event.balance_due | peso }}</strong>
-        <br>For payment methods, please contact your coordinator. 🙏
+        <br>For payment methods, please contact your coordinator. {{ icon('heart') }}
       </div>
     </div>
   </div>
@@ -125,7 +125,7 @@
   <div class="tab-pane fade" id="tab-moodboard">
     <div class="mb-3">
       <div class="card shadow-sm">
-        <div class="card-header fw-bold">📌 Upload Inspiration Peg</div>
+        <div class="card-header fw-bold">{{ icon('pin') }} Upload Inspiration Peg</div>
         <div class="card-body">
           <form method="POST"
                 action="{{ url_for('portal.upload_peg', event_id=event.id) }}"
@@ -160,7 +160,7 @@
                           placeholder="Notes for our team…"></textarea>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm mt-2">Upload Peg ✨</button>
+            <button type="submit" class="btn btn-primary btn-sm mt-2">Upload Peg {{ icon('sparkle') }}</button>
           </form>
         </div>
       </div>
@@ -176,13 +176,13 @@
             <small class="text-muted">{{ peg.category.replace('_',' ').title() }}</small>
             <p class="mb-1 small">{{ peg.title or '—' }}</p>
             {% if peg.is_approved %}
-            <span class="badge bg-success">✅ Approved</span>
+            <span class="badge bg-success">{{ icon('check-circle') }} Approved</span>
             {% elif not peg.is_client_uploaded %}
             <form method="POST"
                   action="{{ url_for('portal.approve_peg', event_id=event.id, peg_id=peg.id) }}">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button class="btn btn-sm btn-outline-success w-100 py-0">
-                ✅ Approve
+                {{ icon('check-circle') }} Approve
               </button>
             </form>
             {% else %}
@@ -201,14 +201,14 @@
   <div class="tab-pane fade" id="tab-feedback">
     {% if event.status == 'done' or event.status == 'event_day' %}
     <div class="card shadow-sm" style="max-width:600px">
-      <div class="card-header fw-bold">⭐ Share Your Experience</div>
+      <div class="card-header fw-bold">{{ icon('star') }} Share Your Experience</div>
       <div class="card-body">
         <a href="{{ url_for('portal.submit_feedback', event_id=event.id) }}"
-           class="btn btn-primary">Rate Your Event 🌟</a>
+           class="btn btn-primary">Rate Your Event {{ icon('star') }}</a>
       </div>
     </div>
     {% else %}
-    <div class="alert alert-info">Feedback will be available after your event. ✨</div>
+    <div class="alert alert-info">Feedback will be available after your event. {{ icon('sparkle') }}</div>
     {% endif %}
   </div>
 </div>

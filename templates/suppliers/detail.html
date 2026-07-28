@@ -3,15 +3,15 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-start mb-3">
   <div>
-    <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
+    <a href="{{ url_for('suppliers.list_suppliers') }}" class="btn btn-sm btn-outline-secondary">{{ icon('arrow-left') }} Back</a>
     <h2 class="d-inline ms-2">
       {{ supplier.company_name }}
-      {% if supplier.is_preferred %}<span class="badge bg-warning text-dark">⭐ Preferred</span>{% endif %}
+      {% if supplier.is_preferred %}<span class="badge bg-warning text-dark">{{ icon('star') }} Preferred</span>{% endif %}
     </h2>
     <p class="text-muted mb-0">{{ supplier.category }} · {{ supplier.contact_person or '' }}</p>
   </div>
   <a href="{{ url_for('suppliers.edit_supplier', supplier_id=supplier.id) }}"
-     class="btn btn-outline-primary">✏️ Edit</a>
+     class="btn btn-outline-primary">{{ icon('edit') }} Edit</a>
 </div>
 
 <div class="row g-3">
@@ -19,10 +19,10 @@
   <div class="col-md-4">
     <div class="card shadow-sm">
       <div class="card-body">
-        <p><strong>📱 Phone:</strong> {{ supplier.phone or '—' }}</p>
-        <p><strong>📧 Email:</strong> {{ supplier.email or '—' }}</p>
-        <p><strong>📍 Address:</strong> {{ supplier.address or '—' }}</p>
-        <p><strong>⭐ Rating:</strong> {{ '★' * (supplier.rating|int) }}
+        <p><strong>{{ icon('phone') }} Phone:</strong> {{ supplier.phone or '—' }}</p>
+        <p><strong>{{ icon('mail') }} Email:</strong> {{ supplier.email or '—' }}</p>
+        <p><strong>{{ icon('pin') }} Address:</strong> {{ supplier.address or '—' }}</p>
+        <p><strong>{{ icon('star') }} Rating:</strong> {{ (supplier.rating|int)|stars }}
            <small class="text-muted">({{ supplier.rating }})</small></p>
         <hr>
         <p class="mb-1"><strong>Performance</strong></p>
@@ -54,7 +54,7 @@
   <!-- PO list + add form -->
   <div class="col-md-8">
     <div class="card shadow-sm mb-3">
-      <div class="card-header fw-bold">📋 Purchase Orders</div>
+      <div class="card-header fw-bold">{{ icon('clipboard') }} Purchase Orders</div>
       <div class="card-body p-0">
         <table class="table table-sm mb-0">
           <thead class="table-light">
@@ -80,12 +80,12 @@
                 <form method="POST" action="{{ url_for('suppliers.mark_delivered', po_id=po.id) }}" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="on_time" value="1">
-                  <button class="btn btn-success btn-sm py-0">✓ On-time</button>
+                  <button class="btn btn-success btn-sm py-0">{{ icon('check') }} On-time</button>
                 </form>
                 <form method="POST" action="{{ url_for('suppliers.mark_delivered', po_id=po.id) }}" class="d-inline">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="on_time" value="0">
-                  <button class="btn btn-warning btn-sm py-0">⚠ Late</button>
+                  <button class="btn btn-warning btn-sm py-0">{{ icon('alert') }} Late</button>
                 </form>
                 {% endif %}
               </td>
@@ -100,7 +100,7 @@
 
     <!-- Add PO -->
     <div class="card shadow-sm">
-      <div class="card-header fw-bold">➕ Add Purchase Order</div>
+      <div class="card-header fw-bold">{{ icon('plus') }} Add Purchase Order</div>
       <div class="card-body">
         <form method="POST" action="{{ url_for('suppliers.add_po', supplier_id=supplier.id) }}"
               enctype="multipart/form-data">

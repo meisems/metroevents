@@ -2,8 +2,8 @@
 {% block title %}Feedback Scores — Metro Events{% endblock %}
 {% block content %}
 <div class="d-flex align-items-center gap-2 mb-3">
-  <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-secondary">← Reports</a>
-  <h2>💬 Post-Event Feedback</h2>
+  <a href="{{ url_for('reports.index') }}" class="btn btn-sm btn-outline-secondary">{{ icon('arrow-left') }} Reports</a>
+  <h2>{{ icon('message') }} Post-Event Feedback</h2>
   <form class="ms-auto d-flex gap-2" method="get">
     <select name="year" class="form-select form-select-sm">
       {% for y in years %}<option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>{% endfor %}
@@ -29,9 +29,9 @@
           <td><small>{{ e.event_date | dateformat }}</small></td>
           {% for r in [ae.rating_overall, ae.rating_design, ae.rating_coordination,
                        ae.rating_on_time, ae.rating_crew, ae.rating_value] %}
-          <td class="text-warning">{{ '★' * (r or 0) if r else '—' }}</td>
+          <td class="text-warning">{% if r %}{{ r|stars }}{% else %}—{% endif %}</td>
           {% endfor %}
-          <td>{% if ae.would_recommend %}✅{% else %}❌{% endif %}</td>
+          <td>{% if ae.would_recommend %}{{ icon('check-circle') }}{% else %}{{ icon('x') }}{% endif %}</td>
           <td>
             {% if ae.client_feedback %}
             <button class="btn btn-sm btn-outline-secondary py-0"

@@ -2,7 +2,7 @@
 {% block title %}Reports & Analytics — Metro Events{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <h2>📊 Reports & Analytics</h2>
+  <h2>{{ icon('bar-chart') }} Reports & Analytics</h2>
   <form class="d-flex gap-2" method="get">
     <select name="year" class="form-select form-select-sm">
       {% for y in years %}
@@ -53,7 +53,7 @@
   <!-- Monthly bookings chart (Chart.js) -->
   <div class="col-md-7">
     <div class="card shadow-sm">
-      <div class="card-header fw-bold">📅 Monthly Bookings & Revenue ({{ year }})</div>
+      <div class="card-header fw-bold">{{ icon('calendar') }} Monthly Bookings & Revenue ({{ year }})</div>
       <div class="card-body">
         <canvas id="monthlyChart" height="200"></canvas>
       </div>
@@ -63,7 +63,7 @@
   <!-- CRM Funnel -->
   <div class="col-md-5">
     <div class="card shadow-sm">
-      <div class="card-header fw-bold">🔄 CRM Pipeline Funnel</div>
+      <div class="card-header fw-bold">{{ icon('refresh') }} CRM Pipeline Funnel</div>
       <div class="card-body">
         {% for stage, count in funnel.items() %}
         <div class="mb-2">
@@ -84,7 +84,7 @@
   <!-- Event type breakdown -->
   <div class="col-md-5">
     <div class="card shadow-sm">
-      <div class="card-header fw-bold">🎭 Events by Type</div>
+      <div class="card-header fw-bold">{{ icon('calendar') }} Events by Type</div>
       <div class="card-body">
         {% for evt_type, cnt in type_counts %}
         <div class="d-flex justify-content-between py-1 border-bottom">
@@ -101,7 +101,7 @@
   <!-- Top Events by Revenue -->
   <div class="col-md-7">
     <div class="card shadow-sm">
-      <div class="card-header fw-bold">🏆 Top Revenue Events ({{ year }})</div>
+      <div class="card-header fw-bold">{{ icon('award') }} Top Revenue Events ({{ year }})</div>
       <div class="card-body p-0">
         <table class="table table-sm mb-0">
           <thead class="table-light">
@@ -131,7 +131,7 @@
   {% if avg_ratings %}
   <div class="col-12">
     <div class="card shadow-sm">
-      <div class="card-header fw-bold">⭐ Average Post-Event Ratings ({{ year }})</div>
+      <div class="card-header fw-bold">{{ icon('star') }} Average Post-Event Ratings ({{ year }})</div>
       <div class="card-body">
         <div class="row g-3 text-center">
           {% set labels = [('Overall', avg_ratings.overall), ('Design', avg_ratings.design),
@@ -141,7 +141,7 @@
           <div class="col-6 col-md-2">
             <div class="h4 text-warning">{{ '%.1f'|format(val or 0) }}</div>
             <div class="text-muted small">{{ label }}</div>
-            <div class="text-warning small">{{ '★' * ((val or 0)|int) }}</div>
+            <div class="text-warning small">{{ ((val or 0)|int)|stars }}</div>
           </div>
           {% endfor %}
         </div>
@@ -154,13 +154,13 @@
 <!-- Navigation to sub-reports -->
 <div class="mt-4 d-flex gap-2">
   <a href="{{ url_for('reports.inventory_report') }}" class="btn btn-outline-primary">
-    📦 Inventory Utilization
+    {{ icon('box') }} Inventory Utilization
   </a>
   <a href="{{ url_for('reports.supplier_report') }}" class="btn btn-outline-primary">
-    🏭 Supplier Performance
+    {{ icon('building') }} Supplier Performance
   </a>
   <a href="{{ url_for('reports.feedback_report') }}" class="btn btn-outline-primary">
-    💬 Feedback Scores
+    {{ icon('message') }} Feedback Scores
   </a>
 </div>
 {% endblock %}
@@ -185,8 +185,8 @@ new Chart(ctx, {
         type: 'line',
         label: 'Revenue (₱)',
         data: monthly.map(m => m.revenue),
-        borderColor: '#C9A84C',
-        backgroundColor: 'rgba(201,168,76,0.1)',
+        borderColor: 'var(--me-gold)',
+        backgroundColor: 'rgba(176,138,62,0.12)',
         tension: 0.4,
         yAxisID: 'y1',
         fill: true,

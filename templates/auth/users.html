@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Team & Users{% endblock %}
 {% block page_title %}Team & Users{% endblock %}
-{% block breadcrumb %}Admin → Users{% endblock %}
+{% block breadcrumb %}Admin {{ icon('arrow-right') }} Users{% endblock %}
 {% block topbar_actions %}
-  <a href="{{ url_for('auth.register') }}" class="btn-gold">➕ Add User</a>
+  <a href="{{ url_for('auth.register') }}" class="btn-gold">{{ icon('plus') }} Add User</a>
 {% endblock %}
 
 {% block content %}
@@ -48,7 +48,7 @@
               {% endif %}
             </td>
             
-            <!-- 🚨 The Promotion Form -->
+            <!-- {{ icon('alert') }} The Promotion Form -->
             <td class="text-end">
               <form action="{{ url_for('auth.promote_user', user_id=u.id) }}" method="POST" class="d-flex align-items-center justify-content-end gap-2 m-0">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />

@@ -2,13 +2,13 @@
 {% block title %}New Quote{% endblock %}
 {% block page_title %}Create Quote{% endblock %}
 {% block breadcrumb %}
-  <a href="{{ url_for('events.detail', event_id=event.id) }}">{{ event.name }}</a> → Quote
+  <a href="{{ url_for('events.detail', event_id=event.id) }}">{{ event.name }}</a> {{ icon('arrow-right') }} Quote
 {% endblock %}
 
 {% block content %}
 <div class="me-card">
   <div class="me-card-header">
-    <h5>💰 New Quote — {{ event.name }}</h5>
+    <h5>{{ icon('wallet') }} New Quote — {{ event.name }}</h5>
   </div>
   <div class="me-card-body">
     <form method="POST">
@@ -60,14 +60,14 @@
                   <td><input class="me-form-control item-price" name="item_price[]" type="number" value="0" min="0" step="0.01" /></td>
                   <td class="item-total text-end" style="font-weight:700">₱0.00</td>
                   <td><input type="checkbox" name="item_addon[]" value="0" title="Is add-on?" /></td>
-                  <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">✕</button></td>
+                  <td><button type="button" class="btn btn-sm btn-outline-danger remove-row">{{ icon('x') }}</button></td>
                 </tr>
               </tbody>
             </table>
           </div>
           <div class="p-3">
             <button type="button" id="addQuoteItem" class="btn-outline-gold" style="font-size:.82rem;padding:6px 14px;">
-              ➕ Add Line Item
+              {{ icon('plus') }} Add Line Item
             </button>
           </div>
         </div>
@@ -100,7 +100,7 @@
             <div class="text-muted-sm">Subtotal: <span id="calcSubtotal">₱0.00</span></div>
             <div class="text-muted-sm">Discount: <span id="calcDiscount">₱0.00</span></div>
             <div class="text-muted-sm">Tax: <span id="calcTax">₱0.00</span></div>
-            <div style="font-weight:800;font-size:1rem;color:#C9A84C;">TOTAL: <span id="calcGrandTotal">₱0.00</span></div>
+            <div style="font-weight:800;font-size:1rem;color:var(--me-gold);">TOTAL: <span id="calcGrandTotal">₱0.00</span></div>
           </div>
         </div>
       </div>
@@ -141,7 +141,7 @@
       </div>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn-gold">💾 Save Quote</button>
+        <button type="submit" class="btn-gold">{{ icon('save') }} Save Quote</button>
         <a href="{{ url_for('events.detail', event_id=event.id, tab='quote') }}" class="btn btn-outline-secondary">Cancel</a>
       </div>
     </form>

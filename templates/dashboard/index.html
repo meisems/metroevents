@@ -3,7 +3,7 @@
 {% block page_title %}Dashboard{% endblock %}
 {% block breadcrumb %}Home{% endblock %}
 {% block topbar_actions %}
-  <a href="{{ url_for('events.new_event') }}" class="btn-gold">➕ New Event</a>
+  <a href="{{ url_for('events.new_event') }}" class="btn-gold">{{ icon('plus') }} New Event</a>
 {% endblock %}
 
 {% block content %}
@@ -12,7 +12,7 @@
 <div class="row g-3 mb-4">
   <div class="col-6 col-lg-3">
     <div class="kpi-card">
-      <div class="kpi-icon gold">🎉</div>
+      <div class="kpi-icon gold">{{ icon('party') }}</div>
       <div>
         <div class="kpi-value">{{ total_events }}</div>
         <div class="kpi-label">Total Events</div>
@@ -21,7 +21,7 @@
   </div>
   <div class="col-6 col-lg-3">
     <div class="kpi-card">
-      <div class="kpi-icon blue">⚡</div>
+      <div class="kpi-icon blue">{{ icon('bolt') }}</div>
       <div>
         <div class="kpi-value">{{ active_events }}</div>
         <div class="kpi-label">Active Events</div>
@@ -30,7 +30,7 @@
   </div>
   <div class="col-6 col-lg-3">
     <div class="kpi-card">
-      <div class="kpi-icon green">👥</div>
+      <div class="kpi-icon green">{{ icon('users') }}</div>
       <div>
         <div class="kpi-value">{{ total_clients }}</div>
         <div class="kpi-label">Total Clients</div>
@@ -39,7 +39,7 @@
   </div>
   <div class="col-6 col-lg-3">
     <div class="kpi-card">
-      <div class="kpi-icon red">🔔</div>
+      <div class="kpi-icon red">{{ icon('bell') }}</div>
       <div>
         <div class="kpi-value">{{ new_inquiries }}</div>
         <div class="kpi-label">New Inquiries</div>
@@ -55,8 +55,8 @@
   <div class="col-lg-8">
     <div class="me-card h-100">
       <div class="me-card-header">
-        <h5>📅 Upcoming Events (Next 30 Days)</h5>
-        <a href="{{ url_for('events.list_events') }}" class="text-muted-sm">View all →</a>
+        <h5>{{ icon('calendar') }} Upcoming Events (Next 30 Days)</h5>
+        <a href="{{ url_for('events.list_events') }}" class="text-muted-sm">View all {{ icon('arrow-right') }}</a>
       </div>
       <div class="me-card-body p-0">
         {% if upcoming %}
@@ -68,7 +68,7 @@
             {% for e in upcoming %}
             <tr>
               <td>
-                <a href="{{ url_for('events.detail', event_id=e.id) }}" style="font-weight:600;color:#1A1A2E;">
+                <a href="{{ url_for('events.detail', event_id=e.id) }}" style="font-weight:600;color:var(--me-ink);">
                   {{ e.name }}
                 </a>
                 <div class="text-muted-sm">{{ e.client.full_name }}</div>
@@ -90,7 +90,7 @@
           </tbody>
         </table>
         {% else %}
-        <div class="p-4 text-center text-muted-sm">No upcoming events in the next 30 days 🎉</div>
+        <div class="p-4 text-center text-muted-sm">No upcoming events in the next 30 days {{ icon('party') }}</div>
         {% endif %}
       </div>
     </div>
@@ -100,7 +100,7 @@
   <div class="col-lg-4">
     <div class="me-card h-100">
       <div class="me-card-header">
-        <h5>⚠️ Overdue Tasks</h5>
+        <h5>{{ icon('alert') }} Overdue Tasks</h5>
       </div>
       <div class="me-card-body p-0">
         {% if overdue_tasks %}
@@ -116,7 +116,7 @@
           {% endfor %}
         </ul>
         {% else %}
-        <div class="p-3 text-center text-muted-sm">No overdue tasks ✅</div>
+        <div class="p-3 text-center text-muted-sm">No overdue tasks {{ icon('check-circle') }}</div>
         {% endif %}
       </div>
     </div>
@@ -132,7 +132,7 @@
     <div class="me-card h-100">
       <div class="me-card-header">
         <h5>🆕 Recent Inquiries</h5>
-        <a href="{{ url_for('clients.list_clients') }}" class="text-muted-sm">View all →</a>
+        <a href="{{ url_for('clients.list_clients') }}" class="text-muted-sm">View all {{ icon('arrow-right') }}</a>
       </div>
       <div class="me-card-body p-0">
         {% if recent_clients %}
@@ -142,7 +142,7 @@
             {% for c in recent_clients %}
             <tr>
               <td>
-                <a href="{{ url_for('clients.detail', client_id=c.id) }}" style="font-weight:600;color:#1A1A2E;">
+                <a href="{{ url_for('clients.detail', client_id=c.id) }}" style="font-weight:600;color:var(--me-ink);">
                   {{ c.full_name }}
                 </a>
               </td>
@@ -163,7 +163,7 @@
   <div class="col-lg-4">
     <div class="me-card h-100">
       <div class="me-card-header">
-        <h5>💸 Overdue Payments</h5>
+        <h5>{{ icon('coins') }} Overdue Payments</h5>
       </div>
       <div class="me-card-body p-0">
         {% if overdue_payments %}
@@ -173,14 +173,14 @@
             <div style="font-weight:600;font-size:.875rem;">{{ p.label or p.payment_type|title }}</div>
             <div class="text-muted-sm d-flex justify-content-between">
               <span>{{ p.event.name }}</span>
-              <strong style="color:#F56565;">{{ p.amount|peso }}</strong>
+              <strong style="color:var(--me-danger);">{{ p.amount|peso }}</strong>
             </div>
             <div class="text-muted-sm">Due {{ p.due_date|dateformat }}</div>
           </li>
           {% endfor %}
         </ul>
         {% else %}
-        <div class="p-3 text-center text-muted-sm">No overdue payments ✅</div>
+        <div class="p-3 text-center text-muted-sm">No overdue payments {{ icon('check-circle') }}</div>
         {% endif %}
       </div>
     </div>
@@ -190,8 +190,8 @@
   <div class="col-lg-4">
     <div class="me-card h-100">
       <div class="me-card-header">
-        <h5>📦 Low Stock Inventory</h5>
-        <a href="{{ url_for('inventory.list_items') }}" class="text-muted-sm">View all →</a>
+        <h5>{{ icon('box') }} Low Stock Inventory</h5>
+        <a href="{{ url_for('inventory.list_items') }}" class="text-muted-sm">View all {{ icon('arrow-right') }}</a>
       </div>
       <div class="me-card-body p-0">
         {% if low_stock %}
@@ -201,7 +201,7 @@
             {% for item in low_stock %}
             <tr>
               <td>
-                <a href="{{ url_for('inventory.detail', item_id=item.id) }}" style="font-weight:600;color:#1A1A2E;">
+                <a href="{{ url_for('inventory.detail', item_id=item.id) }}" style="font-weight:600;color:var(--me-ink);">
                   {{ item.name }}
                 </a>
               </td>
@@ -216,7 +216,7 @@
           </tbody>
         </table>
         {% else %}
-        <div class="p-3 text-center text-muted-sm">All items sufficiently stocked ✅</div>
+        <div class="p-3 text-center text-muted-sm">All items sufficiently stocked {{ icon('check-circle') }}</div>
         {% endif %}
       </div>
     </div>
