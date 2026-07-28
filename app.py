@@ -86,11 +86,20 @@ def create_app(config_name: str = "default") -> Flask:
 
     @app.template_filter("stars")
     def stars_filter(value):
+        from markupsafe import Markup
+        from icons import icon
         try:
             r = int(value or 0)
-            return "★" * r + "☆" * (5 - r)
         except (TypeError, ValueError):
-            return "☆☆☆☆☆"
+            r = 0
+        filled = icon("star", size=15, cls="me-star me-star-filled") * r
+        empty = icon("star", size=15, cls="me-star me-star-empty") * (5 - r)
+        return Markup(filled + empty)
+
+    @app.template_global("icon")
+    def icon_global(name, size=18, cls="", stroke_width=1.75):
+        from icons import icon
+        return icon(name, size=size, cls=cls, stroke_width=stroke_width)
 
     @app.context_processor
     def inject_globals():
